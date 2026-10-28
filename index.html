@@ -36,30 +36,24 @@
             <div class="ui-layer p-6 rounded-3xl max-w-sm w-full text-center space-y-4 border-amber-400/40">
                 <h2 class="text-xl font-black text-white">Daftar Pemain</h2>
                 <input type="text" id="input-name" value="Pemain 1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-amber-300 font-bold outline-none" />
-                <button type="button" id="btn-start" class="w-full py-3 bg-amber-500 text-slate-950 font-black rounded-xl text-xs uppercase shadow-lg">Mula Perancangan 3D</button>
+                <button type="button" onclick="confirmRegistrationAndStart()" class="w-full py-3 bg-amber-500 text-slate-950 font-black rounded-xl text-xs uppercase shadow-lg cursor-pointer">Mula Perancangan 3D</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Definisi fungsi diletakkan secara global supaya boleh dibaca oleh elemen HTML onclick
-        window.confirmRegistrationAndStart = function() {
+        // Fungsi diletakkan secara global supaya boleh dibaca terus oleh onclick HTML
+        function confirmRegistrationAndStart() {
             const name = document.getElementById('input-name').value.trim() || "Pemain";
             document.getElementById('hud-name').innerText = name;
             document.getElementById('modal-reg').classList.add('hidden');
-        };
+        }
 
-        window.openRegModal = function() {
+        function openRegModal() {
             document.getElementById('modal-reg').classList.remove('hidden');
-        };
+        }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const startBtn = document.getElementById('btn-start');
-            if (startBtn) {
-                startBtn.addEventListener('click', window.confirmRegistrationAndStart);
-            }
-
-            // Three.js Asas untuk pastikan paparan 3D berjalan lancar
+        window.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('canvas-container');
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0x080d1a);
