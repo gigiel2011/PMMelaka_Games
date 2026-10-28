@@ -4,105 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SimCity 3D Master Plan - Realistic 6x6 Zoning Game</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Three.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- OrbitControls -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <!-- Canvas Confetti -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap');
-
-        * {
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-            box-sizing: border-box;
-        }
-
-        html, body {
-            width: 100vw;
-            height: 100vh;
-            margin: 0;
-            padding: 0;
-            overflow: hidden !important;
-            position: fixed;
-            background-color: #030712;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            color: #f3f4f6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #app-viewport {
-            width: 100vw;
-            height: 100vh;
-            max-width: 1080px;
-            max-height: 1980px;
-            position: relative;
-            overflow: hidden;
-            background-color: #080d1a;
-            box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        #canvas-container {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.6);
-        }
-
-        .glass-btn {
-            background: rgba(30, 41, 59, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .glass-btn:hover {
-            background: rgba(51, 65, 85, 0.95);
-            border-color: rgba(255, 255, 255, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .building-card {
-            cursor: pointer;
-            touch-action: none;
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        #tooltip-3d {
-            pointer-events: none;
-            transition: opacity 0.15s ease, transform 0.15s ease;
-        }
-
+        * { user-select: none; -webkit-user-select: none; touch-action: manipulation; box-sizing: border-box; }
+        html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden !important; position: fixed; background-color: #030712; font-family: 'Plus Jakarta Sans', sans-serif; color: #f3f4f6; display: flex; align-items: center; justify-content: center; }
+        #app-viewport { width: 100vw; height: 100vh; max-width: 1080px; max-height: 1980px; position: relative; overflow: hidden; background-color: #080d1a; box-shadow: 0 0 60px rgba(0, 0, 0, 0.9); display: flex; flex-direction: column; justify-content: space-between; }
+        #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+        .glass-panel { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.6); }
+        .glass-btn { background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(255, 255, 255, 0.15); transition: all 0.2s; }
+        .glass-btn:hover { background: rgba(51, 65, 85, 0.95); border-color: rgba(255, 255, 255, 0.3); }
+        .building-card { cursor: pointer; touch-action: none; }
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
         ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.5); border-radius: 4px; }
     </style>
 </head>
 <body>
-
     <div id="app-viewport">
         <div id="canvas-container"></div>
-
         <header class="relative z-20 p-3 flex flex-col gap-2">
             <div class="glass-panel rounded-2xl px-4 py-2.5 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -112,9 +35,7 @@
                         </div>
                     </div>
                     <div>
-                        <h1 class="font-black text-sm md:text-base tracking-tight bg-gradient-to-r from-amber-400 via-blue-400 to-emerald-300 bg-clip-text text-transparent leading-none">
-                            UrbanPlanner 3D Pro
-                        </h1>
+                        <h1 class="font-black text-sm md:text-base tracking-tight text-amber-400">UrbanPlanner 3D Pro</h1>
                         <p class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1 font-semibold">
                             <i class="fa-solid fa-user text-amber-400 text-[9px]"></i>
                             <span id="hud-player-name" class="text-amber-300 font-bold">Pemain</span>
@@ -123,75 +44,35 @@
                         </p>
                     </div>
                 </div>
-
                 <div class="flex items-center gap-2">
-                    <button onclick="openLeaderboardModal()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-amber-400 hover:text-amber-300 shadow" title="Leaderboard">
-                        <i class="fa-solid fa-trophy text-xs"></i>
-                    </button>
-                    <button onclick="startNextPlayerTurn()" class="glass-btn px-2.5 h-9 rounded-xl flex items-center justify-center gap-1 text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 text-xs font-extrabold shadow" title="Pemain Baru">
-                        <i class="fa-solid fa-user-plus text-xs"></i>
-                        <span class="hidden sm:inline">Pemain Baru</span>
-                    </button>
-                    <button onclick="toggleAudio()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-slate-300 hover:text-white shadow" title="Audio">
-                        <i id="audio-icon" class="fa-solid fa-volume-high text-xs"></i>
-                    </button>
-                    <button onclick="resetCurrentBoard()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-rose-400 hover:text-rose-300 shadow" title="Set Semula">
-                        <i class="fa-solid fa-rotate-right text-xs"></i>
-                    </button>
+                    <button onclick="openLeaderboardModal()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-amber-400 shadow"><i class="fa-solid fa-trophy text-xs"></i></button>
+                    <button onclick="startNextPlayerTurn()" class="glass-btn px-2.5 h-9 rounded-xl flex items-center gap-1 text-emerald-400 border border-emerald-500/30 text-xs font-extrabold shadow"><i class="fa-solid fa-user-plus text-xs"></i><span class="hidden sm:inline">Pemain Baru</span></button>
+                    <button onclick="resetCurrentBoard()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-rose-400 shadow"><i class="fa-solid fa-rotate-right text-xs"></i></button>
                 </div>
             </div>
-
             <div class="grid grid-cols-3 gap-2">
-                <div class="glass-panel p-2 rounded-xl text-center">
-                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Kemajuan 6x6</div>
-                    <div id="stat-progress" class="text-sm font-black text-amber-400">0 / 36</div>
-                </div>
-                <div class="glass-panel p-2 rounded-xl text-center">
-                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Pematuhan Zon</div>
-                    <div id="stat-compliance" class="text-sm font-black text-emerald-400">100%</div>
-                </div>
-                <div class="glass-panel p-2 rounded-xl text-center">
-                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Masa Perancangan</div>
-                    <div id="stat-timer" class="text-sm font-black text-cyan-400 font-mono">00:00.0</div>
-                </div>
+                <div class="glass-panel p-2 rounded-xl text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Kemajuan 6x6</div><div id="stat-progress" class="text-sm font-black text-amber-400">0 / 36</div></div>
+                <div class="glass-panel p-2 rounded-xl text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Pematuhan Zon</div><div id="stat-compliance" class="text-sm font-black text-emerald-400">100%</div></div>
+                <div class="glass-panel p-2 rounded-xl text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Masa</div><div id="stat-timer" class="text-sm font-black text-cyan-400 font-mono">00:00.0</div></div>
             </div>
         </header>
 
-        <div id="tooltip-3d" class="absolute z-30 opacity-0 glass-panel px-3 py-2 rounded-2xl text-xs space-y-1 shadow-2xl border border-amber-500/30">
-            <div id="tip-title" class="font-extrabold text-amber-300 text-xs">Zon Perumahan</div>
-            <div id="tip-desc" class="text-[10px] text-slate-300">Sentuh zon ini untuk membina bangunan sepadan.</div>
-        </div>
-
-        <div class="absolute right-3 top-36 z-20 flex flex-col gap-1.5">
-            <button onclick="resetCameraView()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-slate-300 hover:text-white shadow" title="Reset Kamera">
-                <i class="fa-solid fa-camera-rotate text-xs"></i>
-            </button>
-            <button onclick="toggleGridLines()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-slate-300 hover:text-white shadow" title="Tukar Wireframe">
-                <i class="fa-solid fa-border-all text-xs"></i>
-            </button>
-            <button onclick="toggleSunAnimation()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-amber-300 hover:text-amber-200 shadow" title="Pencahayaan">
-                <i class="fa-solid fa-sun text-xs"></i>
-            </button>
-        </div>
-
         <footer class="relative z-20 p-3 flex flex-col gap-2">
-            <div id="status-bar" class="glass-panel px-3 py-2 rounded-xl text-center text-xs text-slate-200 flex items-center justify-center gap-2 border-l-4 border-amber-400 shadow-lg">
-                <i class="fa-solid fa-hand-pointer text-amber-400 text-xs animate-bounce"></i>
-                <span id="status-text" class="truncate text-[11px] font-semibold">Sentuh kad bangunan, kemudian klik pada zon 3D yang sepadan!</span>
+            <div id="status-bar" class="glass-panel px-3 py-2 rounded-xl text-center text-xs text-slate-200 border-l-4 border-amber-400 shadow-lg">
+                <i class="fa-solid fa-hand-pointer text-amber-400 mr-1"></i><span id="status-text">Sentuh kad bangunan, kemudian klik pada zon 3D yang sepadan!</span>
             </div>
-
             <div class="glass-panel rounded-2xl p-2.5 space-y-2">
                 <div class="flex items-center justify-between text-[11px] font-black text-slate-300 border-b border-slate-700/60 pb-1.5">
                     <span><i class="fa-solid fa-cubes text-blue-400 mr-1"></i> KOLEKSI BLOK BANGUNAN 3D</span>
-                    <span id="selected-building-badge" class="text-[10px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/30 font-bold">Model Detail High-Poly</span>
+                    <span id="selected-building-badge" class="text-[10px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/30 font-bold">High-Poly</span>
                 </div>
                 <div id="building-cards-container" class="flex gap-2 overflow-x-auto pb-1 pt-0.5"></div>
             </div>
         </footer>
 
-        <!-- PLAYER REGISTRATION MODAL -->
-        <div id="modal-player-registration" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-            <div class="glass-panel border-2 border-amber-400/50 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl relative">
+        <!-- REGISTRATION MODAL -->
+        <div id="modal-player-registration" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div class="glass-panel border-2 border-amber-400/50 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl">
                 <div class="w-14 h-14 bg-gradient-to-tr from-amber-500 via-blue-500 to-emerald-400 rounded-2xl mx-auto flex items-center justify-center shadow-lg text-white text-2xl font-black">
                     <i class="fa-solid fa-user-plus"></i>
                 </div>
@@ -199,12 +80,10 @@
                     <h2 class="text-xl font-black text-white">Daftar Pemain Baru</h2>
                     <p class="text-xs text-slate-400 mt-1">Masukkan nama dan pilih peta untuk memulakan perancangan 3D.</p>
                 </div>
-
                 <div class="space-y-3 text-left">
                     <div>
                         <label class="block text-[10px] uppercase font-extrabold text-slate-400 mb-1">Nama Perancang Bandar:</label>
-                        <input type="text" id="reg-player-name" maxlength="16" value="Pemain 1" 
-                            class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-xl px-4 py-2.5 text-sm text-amber-300 font-bold outline-none shadow-inner" />
+                        <input type="text" id="reg-player-name" maxlength="16" value="Pemain 1" class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-xl px-4 py-2.5 text-sm text-amber-300 font-bold outline-none" />
                     </div>
                     <div>
                         <label class="block text-[10px] uppercase font-extrabold text-slate-400 mb-1">Pilihan Pelan Peta 6x6:</label>
@@ -216,8 +95,7 @@
                         </select>
                     </div>
                 </div>
-
-                <button onclick="confirmRegistrationAndStart()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20">
+                <button type="button" onclick="confirmRegistrationAndStart()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 cursor-pointer">
                     <i class="fa-solid fa-play mr-1"></i> Mula Perancangan 3D
                 </button>
             </div>
@@ -227,584 +105,243 @@
         <div id="modal-leaderboard" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
             <div class="glass-panel border border-amber-400/40 rounded-3xl p-5 max-w-sm w-full text-center space-y-4 shadow-2xl">
                 <div class="flex justify-between items-center border-b border-slate-700/60 pb-3">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-trophy text-amber-400 text-lg"></i>
-                        <h2 class="text-base font-black text-white">Carta Kedudukan Terpantas</h2>
-                    </div>
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-trophy text-amber-400 text-lg"></i><h2 class="text-base font-black text-white">Leaderboard Terpantas</h2></div>
                     <button onclick="closeLeaderboardModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
                 </div>
-                <div class="flex justify-between items-center text-xs px-1">
-                    <span class="text-slate-400">Tapis Peta:</span>
-                    <select id="lb-filter-preset" onchange="renderLeaderboardList()" class="bg-slate-900 border border-slate-700 text-amber-300 font-bold text-xs rounded-lg px-2 py-1 outline-none">
-                        <option value="all">Semua Peta</option>
-                        <option value="Bandar Desa">Bandar Desa</option>
-                        <option value="Metropol">Metropol</option>
-                        <option value="Zon Industri & Pertanian">Zon Industri & Pertanian</option>
-                        <option value="Pelan Rawak">Pelan Rawak</option>
-                    </select>
-                </div>
                 <div id="leaderboard-list" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
-                <div class="flex gap-2 pt-2 border-t border-slate-800">
-                    <button onclick="clearLeaderboardPermanent()" class="flex-1 py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded-xl text-[10px] font-bold text-rose-400">
-                        <i class="fa-solid fa-trash-can mr-1"></i> Padam Rekod
-                    </button>
-                    <button onclick="closeLeaderboardModal()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-bold text-slate-200">
-                        Tutup
-                    </button>
-                </div>
+                <button onclick="closeLeaderboardModal()" class="w-full py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200">Tutup</button>
             </div>
         </div>
 
         <!-- VICTORY MODAL -->
         <div id="modal-victory" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-            <div class="glass-panel border-2 border-amber-400/60 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl relative overflow-hidden">
-                <div class="w-16 h-16 bg-gradient-to-tr from-amber-400 to-yellow-200 rounded-2xl mx-auto flex items-center justify-center shadow-lg text-slate-950 text-3xl font-black">
-                    <i class="fa-solid fa-trophy"></i>
-                </div>
-                <div class="space-y-1">
-                    <h2 class="text-2xl font-black text-white">TAHNIAH!</h2>
-                    <p class="text-xs text-slate-300"><span id="victory-player-name" class="font-bold text-amber-300">Pemain</span>, anda berjaya merancang bandar 3D!</p>
-                </div>
-                <div class="bg-slate-900/80 border border-slate-700/80 p-3 rounded-2xl text-left space-y-2 text-xs">
-                    <div class="flex justify-between border-b border-slate-800 pb-1">
-                        <span class="text-slate-400">Peta:</span>
-                        <span id="m-stat-map" class="font-black text-emerald-400">Bandar Desa</span>
-                    </div>
-                    <div class="flex justify-between border-b border-slate-800 pb-1">
-                        <span class="text-slate-400">Masa:</span>
-                        <span id="m-stat-time" class="font-black text-cyan-400 font-mono">00:00.0</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400">Kedudukan:</span>
-                        <span id="m-stat-rank" class="font-black text-amber-400">#1</span>
-                    </div>
-                </div>
-                <div class="space-y-2">
-                    <button onclick="startNextPlayerTurn()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider">
-                        <i class="fa-solid fa-user-plus mr-1"></i> Pemain Seterusnya / Giliran Baru
-                    </button>
-                    <button onclick="closeVictoryModal(); openLeaderboardModal();" class="w-full py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-300">
-                        Lihat Leaderboard
-                    </button>
-                </div>
+            <div class="glass-panel border-2 border-amber-400/60 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl">
+                <div class="w-16 h-16 bg-gradient-to-tr from-amber-400 to-yellow-200 rounded-2xl mx-auto flex items-center justify-center text-slate-950 text-3xl font-black"><i class="fa-solid fa-trophy"></i></div>
+                <h2 class="text-2xl font-black text-white">TAHNIAH!</h2>
+                <p class="text-xs text-slate-300"><span id="victory-player-name" class="font-bold text-amber-300">Pemain</span>, bandar 3D siap dengan jayanya!</p>
+                <button onclick="startNextPlayerTurn()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 font-black rounded-xl text-xs uppercase">Pemain Seterusnya</button>
             </div>
         </div>
     </div>
 
     <script>
-        const AudioEngine = {
-            ctx: null,
-            enabled: true,
-            init() {
-                if (!this.ctx) {
-                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                    if (AudioCtx) this.ctx = new AudioCtx();
-                }
-            },
-            playPop() {
-                if (!this.enabled) return;
-                this.init();
-                if (!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(850, this.ctx.currentTime + 0.08);
-                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.08);
-            },
-            playError() {
-                if (!this.enabled) return;
-                this.init();
-                if (!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(160, this.ctx.currentTime);
-                osc.frequency.linearRampToValueAtTime(80, this.ctx.currentTime + 0.22);
-                gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.22);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.22);
-            },
-            playVictory() {
-                if (!this.enabled) return;
-                this.init();
-                if (!this.ctx) return;
-                const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99];
-                notes.forEach((freq, idx) => {
-                    setTimeout(() => {
-                        const osc = this.ctx.createOscillator();
-                        const gain = this.ctx.createGain();
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                        gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-                        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
-                        osc.connect(gain);
-                        gain.connect(this.ctx.destination);
-                        osc.start();
-                        osc.stop(this.ctx.currentTime + 0.35);
-                    }, idx * 100);
-                });
-            }
-        };
-
-        function toggleAudio() {
-            AudioEngine.enabled = !AudioEngine.enabled;
-            const icon = document.getElementById('audio-icon');
-            icon.className = AudioEngine.enabled ? "fa-solid fa-volume-high text-xs" : "fa-solid fa-volume-xmark text-xs text-rose-400";
-        }
-
         const ZONES = {
-            res: { id: 'res', name: 'Perumahan', hex: 0xf59e0b, desc: 'Zon Perumahan Mapan & Banglo' },
-            com: { id: 'com', name: 'Komersial', hex: 0x3b82f6, desc: 'Zon Menara Komersial & Perniagaan' },
-            ind: { id: 'ind', name: 'Industri', hex: 0xa855f7, desc: 'Zon Industri & Pembuatan Heavy' },
-            agr: { id: 'agr', name: 'Pertanian', hex: 0x84cc16, desc: 'Zon Rumah Hijau & Pertanian Moden' },
-            prk: { id: 'prk', name: 'Taman Awam', hex: 0x10b981, desc: 'Zon Rekreasi Awam & Landskap Green' }
+            res: { id: 'res', name: 'Perumahan', hex: 0xf59e0b },
+            com: { id: 'com', name: 'Komersial', hex: 0x3b82f6 },
+            ind: { id: 'ind', name: 'Industri', hex: 0xa855f7 },
+            agr: { id: 'agr', name: 'Pertanian', hex: 0x84cc16 },
+            prk: { id: 'prk', name: 'Taman Awam', hex: 0x10b981 }
         };
 
         const BUILDINGS = [
-            { id: 'b_res_house', name: 'Kawasan Perumahan', zone: 'res', icon: 'fa-house-chimney-window', color: '#f59e0b' },
-            { id: 'b_com_shop', name: 'Menara Komersial', zone: 'com', icon: 'fa-building', color: '#3b82f6' },
-            { id: 'b_ind_factory', name: 'Kompleks Industri', zone: 'ind', icon: 'fa-industry', color: '#a855f7' },
-            { id: 'b_agr_farm', name: 'Rumah Hijau & Ladang', zone: 'agr', icon: 'fa-wheat-awn', color: '#84cc16' },
-            { id: 'b_prk_tree', name: 'Taman Awam & Kolam', zone: 'prk', icon: 'fa-tree', color: '#10b981' }
+            { id: 'b_res_house', name: 'Perumahan', zone: 'res', icon: 'fa-house-chimney-window', color: '#f59e0b' },
+            { id: 'b_com_shop', name: 'Komersial', zone: 'com', icon: 'fa-building', color: '#3b82f6' },
+            { id: 'b_ind_factory', name: 'Industri', zone: 'ind', icon: 'fa-industry', color: '#a855f7' },
+            { id: 'b_agr_farm', name: 'Pertanian', zone: 'agr', icon: 'fa-wheat-awn', color: '#84cc16' },
+            { id: 'b_prk_tree', name: 'Taman Awam', zone: 'prk', icon: 'fa-tree', color: '#10b981' }
         ];
 
         const PRESET_MAPS = {
-            desa: {
-                name: 'Bandar Desa',
-                layout: [
-                    ['res', 'res', 'com', 'com', 'prk', 'prk'],
-                    ['res', 'res', 'com', 'prk', 'prk', 'prk'],
-                    ['prk', 'res', 'com', 'prk', 'agr', 'agr'],
-                    ['prk', 'res', 'ind', 'ind', 'agr', 'agr'],
-                    ['prk', 'com', 'ind', 'ind', 'agr', 'agr'],
-                    ['prk', 'com', 'ind', 'ind', 'prk', 'prk']
-                ]
-            },
-            pusat: {
-                name: 'Metropol',
-                layout: [
-                    ['res', 'res', 'res', 'com', 'com', 'com'],
-                    ['res', 'res', 'res', 'com', 'com', 'com'],
-                    ['prk', 'prk', 'res', 'com', 'com', 'com'],
-                    ['prk', 'prk', 'res', 'com', 'com', 'ind'],
-                    ['agr', 'agr', 'prk', 'ind', 'ind', 'ind'],
-                    ['agr', 'agr', 'prk', 'ind', 'ind', 'ind']
-                ]
-            },
-            industri: {
-                name: 'Zon Industri & Pertanian',
-                layout: [
-                    ['prk', 'prk', 'res', 'res', 'com', 'com'],
-                    ['prk', 'prk', 'res', 'res', 'com', 'com'],
-                    ['agr', 'agr', 'prk', 'prk', 'ind', 'ind'],
-                    ['agr', 'agr', 'agr', 'ind', 'ind', 'ind'],
-                    ['agr', 'agr', 'agr', 'ind', 'ind', 'ind'],
-                    ['agr', 'agr', 'agr', 'ind', 'ind', 'ind']
-                ]
-            }
+            desa: { name: 'Bandar Desa', layout: [['res','res','com','com','prk','prk'],['res','res','com','prk','prk','prk'],['prk','res','com','prk','agr','agr'],['prk','res','ind','ind','agr','agr'],['prk','com','ind','ind','agr','agr'],['prk','com','ind','ind','prk','prk']] },
+            pusat: { name: 'Metropol', layout: [['res','res','res','com','com','com'],['res','res','res','com','com','com'],['prk','prk','res','com','com','com'],['prk','prk','res','com','com','ind'],['agr','agr','prk','ind','ind','ind'],['agr','agr','prk','ind','ind','ind']] },
+            industri: { name: 'Zon Industri & Pertanian', layout: [['prk','prk','res','res','com','com'],['prk','prk','res','res','com','com'],['agr','agr','prk','prk','ind','ind'],['agr','agr','agr','ind','ind','ind'],['agr','agr','agr','ind','ind','ind'],['agr','agr','agr','ind','ind','ind']] }
         };
 
         function generateRandomMapLayout() {
             const keys = ['res', 'com', 'ind', 'agr', 'prk'];
-            const arr = [];
+            let arr = [];
             for (let r = 0; r < 6; r++) {
-                const row = [];
-                for (let c = 0; c < 6; c++) {
-                    row.push(keys[Math.floor(Math.random() * keys.length)]);
-                }
+                let row = [];
+                for (let c = 0; c < 6; c++) { row.push(keys[Math.floor(Math.random() * keys.length)]); }
                 arr.push(row);
             }
             return arr;
         }
 
-        const gridSize = 6;
-        let selectedBuilding = 'b_res_house';
-        let gridData = [];
-        let animatedMeshes = [];
-        let currentPlayerName = "Pemain";
-        let currentMapKey = "desa";
-        let currentMapName = "Bandar Desa";
-
-        let startTime = 0;
-        let elapsedMs = 0;
-        let timerInterval = null;
-        let isTimerRunning = false;
-
-        let scene, camera, renderer, controls;
-        let raycaster, mouse;
-        let gridGroup, buildingsGroup;
-        let sunLight;
-        let isSunOrbiting = true;
-        let isWireframe = false;
-
+        let gridSize = 6, selectedBuilding = 'b_res_house', gridData = [], animatedMeshes = [];
+        let currentPlayerName = "Pemain", currentMapName = "Bandar Desa";
+        let startTime = 0, elapsedMs = 0, timerInterval = null, isTimerRunning = false;
+        let scene, camera, renderer, controls, raycaster, mouse, gridGroup, buildingsGroup, sunLight;
         const LB_KEY = 'simcity_3d_leaderboard_v2';
 
         function getLeaderboard() {
-            try {
-                const raw = localStorage.getItem(LB_KEY);
-                return raw ? JSON.parse(raw) : [];
-            } catch(e) { return []; }
+            try { return JSON.parse(localStorage.getItem(LB_KEY)) || []; } catch(e) { return []; }
         }
 
         function saveLeaderboardEntry(name, mapName, timeMs) {
-            const list = getLeaderboard();
-            const entry = {
-                id: Date.now() + "_" + Math.random().toString(36).substr(2, 4),
-                name: name,
-                map: mapName,
-                timeMs: timeMs,
-                date: new Date().toLocaleDateString('ms-MY')
-            };
+            let list = getLeaderboard();
+            let entry = { name, map: mapName, timeMs, date: new Date().toLocaleDateString('ms-MY') };
             list.push(entry);
             list.sort((a, b) => a.timeMs - b.timeMs);
             localStorage.setItem(LB_KEY, JSON.stringify(list));
-            const rankIndex = list.findIndex(item => item.id === entry.id);
-            return rankIndex !== -1 ? `#${rankIndex + 1}` : "Top";
-        }
-
-        function clearLeaderboardPermanent() {
-            if (confirm("Padam SEMUA rekod leaderboard secara kekal?")) {
-                localStorage.removeItem(LB_KEY);
-                renderLeaderboardList();
-                showStatus("Leaderboard dipadamkan.");
-            }
         }
 
         function renderLeaderboardList() {
-            const list = getLeaderboard();
-            const filterMap = document.getElementById('lb-filter-preset').value;
-            const container = document.getElementById('leaderboard-list');
-            container.innerHTML = '';
-            const filtered = filterMap === 'all' ? list : list.filter(item => item.map === filterMap);
-
-            if (filtered.length === 0) {
-                container.innerHTML = `<div class="text-xs text-slate-500 py-6">Tiada rekod mendaftar.</div>`;
-                return;
-            }
-            filtered.forEach((item, idx) => {
-                const row = document.createElement('div');
-                row.className = `flex justify-between items-center p-2 rounded-xl text-xs ${idx === 0 ? 'bg-amber-500/20 border border-amber-400/40 text-amber-300' : 'bg-slate-900/60 text-slate-300'}`;
-                row.innerHTML = `
-                    <div class="flex items-center gap-2 truncate">
-                        <span class="w-5 font-black text-center ${idx === 0 ? 'text-amber-400' : 'text-slate-500'}">#${idx + 1}</span>
-                        <div class="truncate">
-                            <div class="font-bold truncate">${item.name}</div>
-                            <div class="text-[9px] text-slate-400">${item.map} • ${item.date}</div>
-                        </div>
-                    </div>
-                    <span class="font-mono font-bold text-cyan-400 ml-2">${formatTimeMs(item.timeMs)}</span>
-                `;
-                container.appendChild(row);
+            let list = getLeaderboard(), container = document.getElementById('leaderboard-list');
+            container.innerHTML = list.length === 0 ? '<div class="text-xs text-slate-500 py-4">Tiada rekod.</div>' : '';
+            list.forEach((item, idx) => {
+                container.innerHTML += `<div class="flex justify-between items-center p-2 rounded-xl text-xs bg-slate-900/60 text-slate-300"><span>#${idx+1} ${item.name} (${item.map})</span><span class="font-mono text-cyan-400">${formatTimeMs(item.timeMs)}</span></div>`;
             });
         }
 
-        function openLeaderboardModal() {
-            renderLeaderboardList();
-            document.getElementById('modal-leaderboard').classList.remove('hidden');
-        }
-
-        function closeLeaderboardModal() {
-            document.getElementById('modal-leaderboard').classList.add('hidden');
-        }
+        function openLeaderboardModal() { renderLeaderboardList(); document.getElementById('modal-leaderboard').classList.remove('hidden'); }
+        function closeLeaderboardModal() { document.getElementById('modal-leaderboard').classList.add('hidden'); }
 
         function createBuilding3DMesh(buildingId) {
-            const group = new THREE.Group();
-            if (buildingId === 'b_res_house') {
-                const base = new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.04, 0.86), new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 }));
-                base.position.y = 0.02; group.add(base);
-                const wall1 = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.38, 0.42), new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.4 }));
-                wall1.position.set(-0.16, 0.23, -0.16); group.add(wall1);
-                const roof1 = new THREE.Mesh(new THREE.ConeGeometry(0.36, 0.28, 4), new THREE.MeshStandardMaterial({ color: 0xb91c1c, roughness: 0.3 }));
-                roof1.position.set(-0.16, 0.56, -0.16); roof1.rotation.y = Math.PI / 4; group.add(roof1);
-            } else if (buildingId === 'b_com_shop') {
-                const tower = new THREE.Mesh(new THREE.BoxGeometry(0.65, 1.1, 0.65), new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.2 }));
-                tower.position.y = 0.55; group.add(tower);
-            } else if (buildingId === 'b_ind_factory') {
-                const warehouse = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.5, 0.62), new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.6 }));
-                warehouse.position.y = 0.25; group.add(warehouse);
-            } else if (buildingId === 'b_agr_farm') {
-                const soil = new THREE.Mesh(new THREE.BoxGeometry(0.84, 0.08, 0.84), new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 }));
-                soil.position.y = 0.04; group.add(soil);
-            } else if (buildingId === 'b_prk_tree') {
-                const grass = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.06, 0.88), new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.8 }));
-                grass.position.y = 0.03; group.add(grass);
-            }
+            let group = new THREE.Group();
+            let color = 0x334155;
+            if (buildingId === 'b_res_house') color = 0xfef08a;
+            else if (buildingId === 'b_com_shop') color = 0x1e293b;
+            else if (buildingId === 'b_ind_factory') color = 0x64748b;
+            else if (buildingId === 'b_agr_farm') color = 0x78350f;
+            else if (buildingId === 'b_prk_tree') color = 0x15803d;
+            
+            let mesh = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.6, 0.7), new THREE.MeshStandardMaterial({ color, roughness: 0.5 }));
+            mesh.position.y = 0.3;
+            group.add(mesh);
             return group;
         }
 
         function initThreeScene() {
-            const container = document.getElementById('canvas-container');
+            let container = document.getElementById('canvas-container');
             container.innerHTML = '';
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x080d1a);
-            scene.fog = new THREE.FogExp2(0x080d1a, 0.035);
 
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.set(0, 10.5, 9.5);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
 
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.maxPolarAngle = Math.PI / 2.2;
-            controls.minDistance = 5;
-            controls.maxDistance = 22;
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
-            scene.add(ambientLight);
-
-            sunLight = new THREE.DirectionalLight(0xfffbeb, 1.4);
+            scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+            sunLight = new THREE.DirectionalLight(0xfffbeb, 1.2);
             sunLight.position.set(8, 14, 6);
             scene.add(sunLight);
 
             raycaster = new THREE.Raycaster();
             mouse = new THREE.Vector2();
-
             gridGroup = new THREE.Group();
             buildingsGroup = new THREE.Group();
             scene.add(gridGroup);
             scene.add(buildingsGroup);
 
             buildGridBoard();
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
             renderer.domElement.addEventListener('pointerdown', onPointerDown);
             animateScene();
         }
 
         function buildGridBoard() {
-            gridGroup.clear();
-            buildingsGroup.clear();
-            animatedMeshes = [];
-            const spacing = 0.96;
-            const offset = (gridSize * spacing) / 2 - spacing / 2;
-
+            gridGroup.clear(); buildingsGroup.clear(); animatedMeshes = [];
+            let spacing = 0.96, offset = (gridSize * spacing) / 2 - spacing / 2;
             for (let r = 0; r < gridSize; r++) {
                 for (let c = 0; c < gridSize; c++) {
-                    const zoneType = gridData[r][c];
-                    const zoneMeta = ZONES[zoneType];
-                    const tileGeo = new THREE.BoxGeometry(0.92, 0.08, 0.92);
-                    const tileMat = new THREE.MeshStandardMaterial({ color: zoneMeta.hex, wireframe: isWireframe });
-                    const tileMesh = new THREE.Mesh(tileGeo, tileMat);
+                    let zoneType = gridData[r][c];
+                    let tileMesh = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.08, 0.92), new THREE.MeshStandardMaterial({ color: ZONES[zoneType].hex }));
                     tileMesh.position.set(c * spacing - offset, -0.04, r * spacing - offset);
-                    tileMesh.userData = { row: r, col: c, type: 'tile', zone: zoneType };
+                    tileMesh.userData = { row: r, col: c, zone: zoneType };
                     gridGroup.add(tileMesh);
                 }
             }
         }
 
         function onPointerDown(event) {
-            const rect = renderer.domElement.getBoundingClientRect();
+            let rect = renderer.domElement.getBoundingClientRect();
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(gridGroup.children, false);
+            let intersects = raycaster.intersectObjects(gridGroup.children, false);
             if (intersects.length > 0) {
-                const hit = intersects[0].object;
-                if (hit && hit.userData && hit.userData.type === 'tile') {
-                    placeBuildingOnTile(hit.userData.row, hit.userData.col);
-                }
+                let hit = intersects[0].object;
+                if (hit && hit.userData) placeBuildingOnTile(hit.userData.row, hit.userData.col);
             }
         }
 
         function placeBuildingOnTile(r, c) {
             if (!isTimerRunning) startTimer();
-            const targetZone = gridData[r][c];
-            const buildingMeta = BUILDINGS.find(b => b.id === selectedBuilding);
-
+            let targetZone = gridData[r][c], buildingMeta = BUILDINGS.find(b => b.id === selectedBuilding);
             if (targetZone === buildingMeta.zone) {
-                AudioEngine.playPop();
-                showStatus(`Berjaya membina ${buildingMeta.name}!`);
-                const spacing = 0.96;
-                const offset = (gridSize * spacing) / 2 - spacing / 2;
-
-                const existing = buildingsGroup.children.find(m => m.userData.row === r && m.userData.col === c);
-                if (existing) buildingsGroup.remove(existing);
-
-                const bMesh = createBuilding3DMesh(selectedBuilding);
+                let spacing = 0.96, offset = (gridSize * spacing) / 2 - spacing / 2;
+                buildingsGroup.children.forEach(m => { if (m.userData.row === r && m.userData.col === c) buildingsGroup.remove(m); });
+                let bMesh = createBuilding3DMesh(selectedBuilding);
                 bMesh.position.set(c * spacing - offset, 0, r * spacing - offset);
                 bMesh.userData = { row: r, col: c, buildingId: selectedBuilding };
-                bMesh.scale.set(0.1, 0.1, 0.1);
                 buildingsGroup.add(bMesh);
-                animatedMeshes.push({ mesh: bMesh, targetScale: 1, speed: 0.15 });
                 checkGameVictoryCondition();
-            } else {
-                AudioEngine.playError();
-                showStatus(`Ralat! Tidak sepadan dengan zon.`);
             }
         }
 
         function checkGameVictoryCondition() {
-            const placedMap = {};
-            buildingsGroup.children.forEach(m => {
-                placedMap[`${m.userData.row},${m.userData.col}`] = m.userData.buildingId;
-            });
-            const zoneMap = { 'b_res_house': 'res', 'b_com_shop': 'com', 'b_ind_factory': 'ind', 'b_agr_farm': 'agr', 'b_prk_tree': 'prk' };
-
-            let correctTotal = 0;
-            const totalTiles = gridSize * gridSize;
-            for(let r=0; r<gridSize; r++) {
-                for(let c=0; c<gridSize; c++) {
-                    const key = `${r},${c}`;
-                    if(placedMap[key] && zoneMap[placedMap[key]] === gridData[r][c]) {
-                        correctTotal++;
-                    }
-                }
-            }
-
-            document.getElementById('stat-progress').innerText = `${correctTotal} / ${totalTiles}`;
-            if (correctTotal === totalTiles) {
+            let placedCount = buildingsGroup.children.length;
+            document.getElementById('stat-progress').innerText = `${placedCount} / ${gridSize * gridSize}`;
+            if (placedCount === gridSize * gridSize) {
                 stopTimer();
-                AudioEngine.playVictory();
-                const rankStr = saveLeaderboardEntry(currentPlayerName, currentMapName, elapsedMs);
+                saveLeaderboardEntry(currentPlayerName, currentMapName, elapsedMs);
                 document.getElementById('victory-player-name').innerText = currentPlayerName;
-                document.getElementById('m-stat-map').innerText = currentMapName;
-                document.getElementById('m-stat-time').innerText = formatTimeMs(elapsedMs);
-                document.getElementById('m-stat-rank').innerText = rankStr;
                 document.getElementById('modal-victory').classList.remove('hidden');
             }
         }
 
         function startTimer() {
             if (isTimerRunning) return;
-            isTimerRunning = true;
-            startTime = Date.now() - elapsedMs;
+            isTimerRunning = true; startTime = Date.now() - elapsedMs;
             timerInterval = setInterval(() => {
                 elapsedMs = Date.now() - startTime;
                 document.getElementById('stat-timer').innerText = formatTimeMs(elapsedMs);
             }, 100);
         }
 
-        function stopTimer() {
-            isTimerRunning = false;
-            clearInterval(timerInterval);
-        }
-
+        function stopTimer() { isTimerRunning = false; clearInterval(timerInterval); }
         function formatTimeMs(ms) {
-            const totalSec = ms / 1000;
-            const mins = Math.floor(totalSec / 60);
-            const secs = Math.floor(totalSec % 60);
-            const tenths = Math.floor((totalSec % 1) * 10);
+            let totalSec = ms / 1000, mins = Math.floor(totalSec / 60), secs = Math.floor(totalSec % 60), tenths = Math.floor((totalSec % 1) * 10);
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${tenths}`;
         }
 
-        function resetCurrentBoard() {
-            stopTimer();
-            elapsedMs = 0;
-            document.getElementById('stat-timer').innerText = "00:00.0";
-            document.getElementById('stat-progress').innerText = `0 / ${gridSize * gridSize}`;
-            buildGridBoard();
-            showStatus("Papan diset semula.");
-        }
-
-        function showStatus(msg) {
-            document.getElementById('status-text').innerText = msg;
-        }
+        function resetCurrentBoard() { stopTimer(); elapsedMs = 0; document.getElementById('stat-timer').innerText = "00:00.0"; buildGridBoard(); }
 
         function renderBuildingCards() {
-            const container = document.getElementById('building-cards-container');
+            let container = document.getElementById('building-cards-container');
             container.innerHTML = '';
             BUILDINGS.forEach(b => {
-                const card = document.createElement('div');
-                card.className = `building-card flex-shrink-0 w-28 p-2 rounded-xl flex flex-col items-center justify-center text-center glass-btn ${selectedBuilding === b.id ? 'border-amber-400 bg-amber-500/20' : 'border-slate-700'}`;
-                card.innerHTML = `
-                    <div class="w-9 h-9 rounded-lg flex items-center justify-center mb-1 text-white shadow" style="background: ${b.color};">
-                        <i class="fa-solid ${b.icon} text-sm"></i>
-                    </div>
-                    <div class="text-[10px] font-extrabold text-slate-200 truncate w-full">${b.name}</div>
-                `;
-                card.addEventListener('click', () => {
-                    selectedBuilding = b.id;
-                    AudioEngine.playPop();
-                    renderBuildingCards();
-                    document.getElementById('selected-building-badge').innerText = b.name;
-                    showStatus(`Dipilih: ${b.name}`);
-                });
+                let card = document.createElement('div');
+                card.className = `building-card flex-shrink-0 w-28 p-2 rounded-xl flex flex-col items-center justify-center text-center glass-btn border-slate-700`;
+                card.innerHTML = `<div class="w-9 h-9 rounded-lg flex items-center justify-center mb-1 text-white shadow" style="background: ${b.color};"><i class="fa-solid ${b.icon} text-sm"></i></div><div class="text-[10px] font-extrabold text-slate-200">${b.name}</div>`;
+                card.onclick = () => { selectedBuilding = b.id; document.getElementById('selected-building-badge').innerText = b.name; };
                 container.appendChild(card);
             });
         }
 
         function confirmRegistrationAndStart() {
-            const nameInput = document.getElementById('reg-player-name').value.trim();
+            let nameInput = document.getElementById('reg-player-name').value.trim();
             currentPlayerName = nameInput ? nameInput : "Pemain";
-            const presetKey = document.getElementById('reg-map-preset').value;
-            currentMapKey = presetKey;
+            let presetKey = document.getElementById('reg-map-preset').value;
             
-            if (presetKey === 'desa') {
-                currentMapName = PRESET_MAPS.desa.name;
-                gridData = JSON.parse(JSON.stringify(PRESET_MAPS.desa.layout));
-            } else if (presetKey === 'pusat') {
-                currentMapName = PRESET_MAPS.pusat.name;
-                gridData = JSON.parse(JSON.stringify(PRESET_MAPS.pusat.layout));
-            } else if (presetKey === 'industri') {
-                currentMapName = PRESET_MAPS.industri.name;
-                gridData = JSON.parse(JSON.stringify(PRESET_MAPS.industri.layout));
-            } else {
-                currentMapName = "Pelan Rawak";
-                gridData = generateRandomMapLayout();
-            }
+            if (presetKey === 'desa') { currentMapName = PRESET_MAPS.desa.name; gridData = JSON.parse(JSON.stringify(PRESET_MAPS.desa.layout)); }
+            else if (presetKey === 'pusat') { currentMapName = PRESET_MAPS.pusat.name; gridData = JSON.parse(JSON.stringify(PRESET_MAPS.pusat.layout)); }
+            else if (presetKey === 'industri') { currentMapName = PRESET_MAPS.industri.name; gridData = JSON.parse(JSON.stringify(PRESET_MAPS.industri.layout)); }
+            else { currentMapName = "Pelan Rawak"; gridData = generateRandomMapLayout(); }
 
             document.getElementById('hud-player-name').innerText = currentPlayerName;
             document.getElementById('hud-map-name').innerText = currentMapName;
             document.getElementById('modal-player-registration').classList.add('hidden');
             document.getElementById('modal-victory').classList.add('hidden');
             resetCurrentBoard();
-            AudioEngine.playPop();
         }
 
         function startNextPlayerTurn() {
-            stopTimer();
-            elapsedMs = 0;
+            stopTimer(); elapsedMs = 0;
             document.getElementById('stat-timer').innerText = "00:00.0";
             document.getElementById('modal-player-registration').classList.remove('hidden');
             document.getElementById('modal-victory').classList.add('hidden');
-            AudioEngine.playPop();
         }
 
-        function resetCameraView() {
-            camera.position.set(0, 10.5, 9.5);
-            controls.target.set(0, 0, 0);
-            controls.update();
-        }
-
-        function toggleGridLines() {
-            isWireframe = !isWireframe;
-            gridGroup.children.forEach(mesh => { if(mesh.material) mesh.material.wireframe = isWireframe; });
-        }
-
-        function toggleSunAnimation() { isSunOrbiting = !isSunOrbiting; }
-
-        let clock = new THREE.Clock();
         function animateScene() {
             requestAnimationFrame(animateScene);
-            if (isSunOrbiting && sunLight) {
-                const angle = clock.getElapsedTime() * 0.15;
-                sunLight.position.x = Math.cos(angle) * 10;
-                sunLight.position.z = Math.sin(angle) * 10;
-            }
-            animatedMeshes.forEach(item => {
-                const currentScale = item.mesh.scale.x;
-                if (currentScale < item.targetScale) {
-                    const next = THREE.MathUtils.lerp(currentScale, item.targetScale, item.speed);
-                    item.mesh.scale.set(next, next, next);
-                }
-            });
             if (controls) controls.update();
             if (renderer && scene && camera) renderer.render(scene, camera);
         }
