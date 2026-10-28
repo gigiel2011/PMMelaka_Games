@@ -45,9 +45,9 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button onclick="openLeaderboardModal()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-amber-400 shadow"><i class="fa-solid fa-trophy text-xs"></i></button>
-                    <button onclick="startNextPlayerTurn()" class="glass-btn px-2.5 h-9 rounded-xl flex items-center gap-1 text-emerald-400 border border-emerald-500/30 text-xs font-extrabold shadow"><i class="fa-solid fa-user-plus text-xs"></i><span class="hidden sm:inline">Pemain Baru</span></button>
-                    <button onclick="resetCurrentBoard()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-rose-400 shadow"><i class="fa-solid fa-rotate-right text-xs"></i></button>
+                    <button onclick="openLeaderboardModal()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-amber-400 shadow" title="Leaderboard"><i class="fa-solid fa-trophy text-xs"></i></button>
+                    <button onclick="startNextPlayerTurn()" class="glass-btn px-2.5 h-9 rounded-xl flex items-center gap-1 text-emerald-400 border border-emerald-500/30 text-xs font-extrabold shadow" title="Pemain Baru"><i class="fa-solid fa-user-plus text-xs"></i><span class="hidden sm:inline">Pemain Baru</span></button>
+                    <button onclick="resetCurrentBoard()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-rose-400 shadow" title="Set Semula"><i class="fa-solid fa-rotate-right text-xs"></i></button>
                 </div>
             </div>
             <div class="grid grid-cols-3 gap-2">
@@ -158,7 +158,7 @@
             return arr;
         }
 
-        let gridSize = 6, selectedBuilding = 'b_res_house', gridData = [], animatedMeshes = [];
+        let gridSize = 6, selectedBuilding = 'b_res_house', gridData = [];
         let currentPlayerName = "Pemain", currentMapName = "Bandar Desa";
         let startTime = 0, elapsedMs = 0, timerInterval = null, isTimerRunning = false;
         let scene, camera, renderer, controls, raycaster, mouse, gridGroup, buildingsGroup, sunLight;
@@ -231,13 +231,13 @@
             scene.add(gridGroup);
             scene.add(buildingsGroup);
 
-            buildGridBoard();
             renderer.domElement.addEventListener('pointerdown', onPointerDown);
             animateScene();
         }
 
         function buildGridBoard() {
-            gridGroup.clear(); buildingsGroup.clear(); animatedMeshes = [];
+            if (!gridData || gridData.length === 0) return;
+            gridGroup.clear(); buildingsGroup.clear();
             let spacing = 0.96, offset = (gridSize * spacing) / 2 - spacing / 2;
             for (let r = 0; r < gridSize; r++) {
                 for (let c = 0; c < gridSize; c++) {
@@ -330,6 +330,7 @@
             document.getElementById('hud-map-name').innerText = currentMapName;
             document.getElementById('modal-player-registration').classList.add('hidden');
             document.getElementById('modal-victory').classList.add('hidden');
+            buildGridBoard();
             resetCurrentBoard();
         }
 
