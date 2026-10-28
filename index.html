@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SimCity 3D Master Plan - Realistic 6x6 Zoning Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap');
+        * { user-select: none; -webkit-user-select: none; touch-action: manipulation; box-sizing: border-box; }
+        html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden !important; position: fixed; background-color: #030712; font-family: 'Plus Jakarta Sans', sans-serif; color: #f3f4f6; display: flex; align-items: center; justify-content: center; }
+        #app-viewport { width: 100vw; height: 100vh; max-width: 1080px; max-height: 1980px; position: relative; overflow: hidden; background-color: #080d1a; box-shadow: 0 0 60px rgba(0, 0, 0, 0.9); display: flex; flex-direction: column; justify-content: space-between; }
+        #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+        .glass-panel { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.6); }
+        .glass-btn { background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(255, 255, 255, 0.15); transition: all 0.2s; }
+        .glass-btn:hover { background: rgba(51, 65, 85, 0.95); border-color: rgba(255, 255, 255, 0.3); }
+        .building-card { cursor: pointer; touch-action: none; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+        ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.5); border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div id="app-viewport">
+        <div id="canvas-container"></div>
+        <header class="relative z-20 p-3 flex flex-col gap-2">
+            <div class="glass-panel rounded-2xl px-4 py-2.5 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-blue-500 to-emerald-400 p-0.5 flex items-center justify-center shadow-lg">
+                        <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                            <i class="fa-solid fa-city text-amber-400 text-lg"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="font-black text-sm md:text-base tracking-tight text-amber-400">UrbanPlanner 3D Pro</h1>
+                        <p class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1 font-semibold">
+                            <i class="fa-solid fa-user text-amber-400 text-[9px]"></i>
+                            <span id="hud-player-name" class="text-amber-300 font-bold">Pemain</span>
+                            <span class="text-slate-600">•</span>
+                            <span id="hud-map-name" class="text-emerald-400 font-medium">Bandar Desa</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="openLeaderboardModal()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-amber-400 shadow" title="Leaderboard"><i class="fa-solid fa-trophy text-xs"></i></button>
+                    <button onclick="startNextPlayerTurn()" class="glass-btn px-2.5 h-9 rounded-xl flex items-center gap-1 text-emerald-400 border border-emerald-500/30 text-xs font-extrabold shadow" title="Pemain Baru"><i class="fa-solid fa-user-plus text-xs"></i><span class="hidden sm:inline">Pemain Baru</span></button>
+                    <button onclick="resetCurrentBoard()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-rose-400 shadow" title="Set Semula"><i class="fa-solid fa-rotate-right text-xs"></i></button>
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+                <div class="glass-panel p-2 rounded-xl text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Kemajuan 6x6</div><div id="stat-progress" class="text-sm font-black text-amber-400">0 / 36</div></div>
+                <div class="glass-panel p-2 rounded-xl text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Pematuhan Zon</div><div id="stat-compliance" class="text-sm font-black text-emerald-400">100%</div></div>
+                <div class="glass-panel p-2 rounded-xl text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Masa</div><div id="stat-timer" class="text-sm font-black text-cyan-400 font-mono">00:00.0</div></div>
+            </div>
+        </header>
+
+        <footer class="relative z-20 p-3 flex flex-col gap-2">
+            <div id="status-bar" class="glass-panel px-3 py-2 rounded-xl text-center text-xs text-slate-200 border-l-4 border-amber-400 shadow-lg">
+                <i class="fa-solid fa-hand-pointer text-amber-400 mr-1"></i><span id="status-text">Sentuh kad bangunan, kemudian klik pada zon 3D yang sepadan!</span>
+            </div>
+            <div class="glass-panel rounded-2xl p-2.5 space-y-2">
+                <div class="flex items-center justify-between text-[11px] font-black text-slate-300 border-b border-slate-700/60 pb-1.5">
+                    <span><i class="fa-solid fa-cubes text-blue-400 mr-1"></i> KOLEKSI BLOK BANGUNAN 3D</span>
+                    <span id="selected-building-badge" class="text-[10px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/30 font-bold">High-Poly</span>
+                </div>
+                <div id="building-cards-container" class="flex gap-2 overflow-x-auto pb-1 pt-0.5"></div>
+            </div>
+        </footer>
+
+        <!-- REGISTRATION MODAL -->
+        <div id="modal-player-registration" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div class="glass-panel border-2 border-amber-400/50 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl">
+                <div class="w-14 h-14 bg-gradient-to-tr from-amber-500 via-blue-500 to-emerald-400 rounded-2xl mx-auto flex items-center justify-center shadow-lg text-white text-2xl font-black">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-black text-white">Daftar Pemain Baru</h2>
+                    <p class="text-xs text-slate-400 mt-1">Masukkan nama dan pilih peta untuk memulakan perancangan 3D.</p>
+                </div>
+                <div class="space-y-3 text-left">
+                    <div>
+                        <label class="block text-[10px] uppercase font-extrabold text-slate-400 mb-1">Nama Perancang Bandar:</label>
+                        <input type="text" id="reg-player-name" maxlength="16" value="Pemain 1" class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-xl px-4 py-2.5 text-sm text-amber-300 font-bold outline-none" />
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-extrabold text-slate-400 mb-1">Pilihan Pelan Peta 6x6:</label>
+                        <select id="reg-map-preset" class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-xl px-3 py-2.5 text-xs text-slate-200 font-bold outline-none cursor-pointer">
+                            <option value="desa">Peta 1: Bandar Desa (Campuran Mapan)</option>
+                            <option value="pusat">Peta 2: Metropol (Komersial & Perumahan)</option>
+                            <option value="industri">Peta 3: Zon Industri & Pertanian</option>
+                            <option value="rawak">Peta 4: Pelan Rawak (Jana Rawak)</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="button" onclick="confirmRegistrationAndStart()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 cursor-pointer">
+                    <i class="fa-solid fa-play mr-1"></i> Mula Perancangan 3D
+                </button>
+            </div>
+        </div>
+
+        <!-- LEADERBOARD MODAL -->
+        <div id="modal-leaderboard" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+            <div class="glass-panel border border-amber-400/40 rounded-3xl p-5 max-w-sm w-full text-center space-y-4 shadow-2xl">
+                <div class="flex justify-between items-center border-b border-slate-700/60 pb-3">
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-trophy text-amber-400 text-lg"></i><h2 class="text-base font-black text-white">Leaderboard Terpantas</h2></div>
+                    <button onclick="closeLeaderboardModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
+                </div>
+                <div id="leaderboard-list" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+                <button onclick="closeLeaderboardModal()" class="w-full py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200">Tutup</button>
+            </div>
+        </div>
+
+        <!-- VICTORY MODAL -->
+        <div id="modal-victory" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+            <div class="glass-panel border-2 border-amber-400/60 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl">
+                <div class="w-16 h-16 bg-gradient-to-tr from-amber-400 to-yellow-200 rounded-2xl mx-auto flex items-center justify-center text-slate-950 text-3xl font-black"><i class="fa-solid fa-trophy"></i></div>
+                <h2 class="text-2xl font-black text-white">TAHNIAH!</h2>
+                <p class="text-xs text-slate-300"><span id="victory-player-name" class="font-bold text-amber-300">Pemain</span>, bandar 3D siap dengan jayanya!</p>
+                <button onclick="startNextPlayerTurn()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 font-black rounded-xl text-xs uppercase">Pemain Seterusnya</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ZONES = {
+            res: { id: 'res', name: 'Perumahan', hex: 0xf59e0b },
+            com: { id: 'com', name: 'Komersial', hex: 0x3b82f6 },
+            ind: { id: 'ind', name: 'Industri', hex: 0xa855f7 },
+            agr: { id: 'agr', name: 'Pertanian', hex: 0x84cc16 },
+            prk: { id: 'prk', name: 'Taman Awam', hex: 0x10b981 }
+        };
+
+        const BUILDINGS = [
+            { id: 'b_res_house', name: 'Perumahan', zone: 'res', icon: 'fa-house-chimney-window', color: '#f59e0b' },
+            { id: 'b_com_shop', name: 'Komersial', zone: 'com', icon: 'fa-building', color: '#3b82f6' },
+            { id: 'b_ind_factory', name: 'Industri', zone: 'ind', icon: 'fa-industry', color: '#a855f7' },
+            { id: 'b_agr_farm', name: 'Pertanian', zone: 'agr', icon: 'fa-wheat-awn', color: '#84cc16' },
+            { id: 'b_prk_tree', name: 'Taman Awam', zone: 'prk', icon: 'fa-tree', color: '#10b981' }
+        ];
+
+        const PRESET_MAPS = {
+            desa: { name: 'Bandar Desa', layout: [['res','res','com','com','prk','prk'],['res','res','com','prk','prk','prk'],['prk','res','com','prk','agr','agr'],['prk','res','ind','ind','agr','agr'],['prk','com','ind','ind','agr','agr'],['prk','com','ind','ind','prk','prk']] },
+            pusat: { name: 'Metropol
