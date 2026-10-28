@@ -62,7 +62,6 @@
             z-index: 1;
         }
 
-        /* Glassmorphism UI */
         .glass-panel {
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(16px);
@@ -83,22 +82,10 @@
             transform: translateY(-1px);
         }
 
-        .glass-btn:active {
-            transform: translateY(1px);
-        }
-
         .building-card {
             cursor: pointer;
             touch-action: none;
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        #drag-avatar {
-            pointer-events: none;
-            position: fixed;
-            z-index: 1000;
-            transform: translate(-50%, -50%);
-            display: none;
         }
 
         #tooltip-3d {
@@ -114,16 +101,8 @@
 <body>
 
     <div id="app-viewport">
-        <!-- 3D WebGL Canvas Container -->
         <div id="canvas-container"></div>
 
-        <!-- DRAGGING FLOATING AVATAR -->
-        <div id="drag-avatar" class="glass-panel px-3.5 py-2 rounded-2xl border border-amber-400 flex items-center gap-2.5 shadow-2xl">
-            <i id="drag-avatar-icon" class="fa-solid fa-building text-amber-400 text-base"></i>
-            <span id="drag-avatar-text" class="text-xs font-extrabold text-white">Bangunan Realistik</span>
-        </div>
-
-        <!-- TOP HUD DISPLAY -->
         <header class="relative z-20 p-3 flex flex-col gap-2">
             <div class="glass-panel rounded-2xl px-4 py-2.5 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -149,23 +128,19 @@
                     <button onclick="openLeaderboardModal()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-amber-400 hover:text-amber-300 shadow" title="Leaderboard">
                         <i class="fa-solid fa-trophy text-xs"></i>
                     </button>
-
-                    <button onclick="startNextPlayerTurn()" class="glass-btn px-2.5 h-9 rounded-xl flex items-center justify-center gap-1 text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 text-xs font-extrabold shadow" title="Tukar Pemain Baru">
+                    <button onclick="startNextPlayerTurn()" class="glass-btn px-2.5 h-9 rounded-xl flex items-center justify-center gap-1 text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 text-xs font-extrabold shadow" title="Pemain Baru">
                         <i class="fa-solid fa-user-plus text-xs"></i>
                         <span class="hidden sm:inline">Pemain Baru</span>
                     </button>
-
                     <button onclick="toggleAudio()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-slate-300 hover:text-white shadow" title="Audio">
                         <i id="audio-icon" class="fa-solid fa-volume-high text-xs"></i>
                     </button>
-
                     <button onclick="resetCurrentBoard()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-rose-400 hover:text-rose-300 shadow" title="Set Semula">
                         <i class="fa-solid fa-rotate-right text-xs"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- ANALYTICS DASHBOARD -->
             <div class="grid grid-cols-3 gap-2">
                 <div class="glass-panel p-2 rounded-xl text-center">
                     <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Kemajuan 6x6</div>
@@ -182,13 +157,11 @@
             </div>
         </header>
 
-        <!-- FLOATING TOOLTIP -->
         <div id="tooltip-3d" class="absolute z-30 opacity-0 glass-panel px-3 py-2 rounded-2xl text-xs space-y-1 shadow-2xl border border-amber-500/30">
             <div id="tip-title" class="font-extrabold text-amber-300 text-xs">Zon Perumahan</div>
-            <div id="tip-desc" class="text-[10px] text-slate-300">Sentuh atau tarik bangunan yang padan ke zon ini.</div>
+            <div id="tip-desc" class="text-[10px] text-slate-300">Sentuh zon ini untuk membina bangunan sepadan.</div>
         </div>
 
-        <!-- CAMERA & GRAPHICS CONTROLS -->
         <div class="absolute right-3 top-36 z-20 flex flex-col gap-1.5">
             <button onclick="resetCameraView()" class="glass-btn w-9 h-9 rounded-xl flex items-center justify-center text-slate-300 hover:text-white shadow" title="Reset Kamera">
                 <i class="fa-solid fa-camera-rotate text-xs"></i>
@@ -201,25 +174,18 @@
             </button>
         </div>
 
-        <!-- BOTTOM TOOLBAR & DRAG-AND-DROP DRAWER -->
         <footer class="relative z-20 p-3 flex flex-col gap-2">
-            <!-- Dynamic Status Pill -->
             <div id="status-bar" class="glass-panel px-3 py-2 rounded-xl text-center text-xs text-slate-200 flex items-center justify-center gap-2 border-l-4 border-amber-400 shadow-lg">
                 <i class="fa-solid fa-hand-pointer text-amber-400 text-xs animate-bounce"></i>
-                <span id="status-text" class="truncate text-[11px] font-semibold">Tarik atau sentuh kad bangunan realistik ke zon 3D yang sepadan!</span>
+                <span id="status-text" class="truncate text-[11px] font-semibold">Sentuh kad bangunan, kemudian klik pada zon 3D yang sepadan!</span>
             </div>
 
-            <!-- Building Selector Cards Drawer -->
             <div class="glass-panel rounded-2xl p-2.5 space-y-2">
                 <div class="flex items-center justify-between text-[11px] font-black text-slate-300 border-b border-slate-700/60 pb-1.5">
                     <span><i class="fa-solid fa-cubes text-blue-400 mr-1"></i> KOLEKSI BLOK BANGUNAN 3D</span>
                     <span id="selected-building-badge" class="text-[10px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/30 font-bold">Model Detail High-Poly</span>
                 </div>
-
-                <!-- Building Cards Carousel -->
-                <div id="building-cards-container" class="flex gap-2 overflow-x-auto pb-1 pt-0.5">
-                    <!-- Populated via Javascript -->
-                </div>
+                <div id="building-cards-container" class="flex gap-2 overflow-x-auto pb-1 pt-0.5"></div>
             </div>
         </footer>
 
@@ -231,17 +197,15 @@
                 </div>
                 <div>
                     <h2 class="text-xl font-black text-white">Daftar Pemain Baru</h2>
-                    <p class="text-xs text-slate-400 mt-1">Masukkan nama dan pilih peta untuk memulakan perancangan 3D realistik.</p>
+                    <p class="text-xs text-slate-400 mt-1">Masukkan nama dan pilih peta untuk memulakan perancangan 3D.</p>
                 </div>
 
-                <!-- Registration Form -->
                 <div class="space-y-3 text-left">
                     <div>
                         <label class="block text-[10px] uppercase font-extrabold text-slate-400 mb-1">Nama Perancang Bandar:</label>
-                        <input type="text" id="reg-player-name" maxlength="16" placeholder="Contoh: Ali / Siti..." 
+                        <input type="text" id="reg-player-name" maxlength="16" value="Pemain 1" 
                             class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-xl px-4 py-2.5 text-sm text-amber-300 font-bold outline-none shadow-inner" />
                     </div>
-
                     <div>
                         <label class="block text-[10px] uppercase font-extrabold text-slate-400 mb-1">Pilihan Pelan Peta 6x6:</label>
                         <select id="reg-map-preset" class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-xl px-3 py-2.5 text-xs text-slate-200 font-bold outline-none cursor-pointer">
@@ -259,7 +223,7 @@
             </div>
         </div>
 
-        <!-- PERMANENT LEADERBOARD MODAL -->
+        <!-- LEADERBOARD MODAL -->
         <div id="modal-leaderboard" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
             <div class="glass-panel border border-amber-400/40 rounded-3xl p-5 max-w-sm w-full text-center space-y-4 shadow-2xl">
                 <div class="flex justify-between items-center border-b border-slate-700/60 pb-3">
@@ -269,7 +233,6 @@
                     </div>
                     <button onclick="closeLeaderboardModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
                 </div>
-
                 <div class="flex justify-between items-center text-xs px-1">
                     <span class="text-slate-400">Tapis Peta:</span>
                     <select id="lb-filter-preset" onchange="renderLeaderboardList()" class="bg-slate-900 border border-slate-700 text-amber-300 font-bold text-xs rounded-lg px-2 py-1 outline-none">
@@ -280,11 +243,7 @@
                         <option value="Pelan Rawak">Pelan Rawak</option>
                     </select>
                 </div>
-
-                <div id="leaderboard-list" class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                    <!-- Populated via JS -->
-                </div>
-
+                <div id="leaderboard-list" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
                 <div class="flex gap-2 pt-2 border-t border-slate-800">
                     <button onclick="clearLeaderboardPermanent()" class="flex-1 py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded-xl text-[10px] font-bold text-rose-400">
                         <i class="fa-solid fa-trash-can mr-1"></i> Padam Rekod
@@ -296,58 +255,43 @@
             </div>
         </div>
 
-        <!-- VICTORY MODAL OVERLAY -->
+        <!-- VICTORY MODAL -->
         <div id="modal-victory" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
             <div class="glass-panel border-2 border-amber-400/60 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl relative overflow-hidden">
-                <div class="absolute -right-10 -top-10 w-32 h-32 bg-amber-500/20 rounded-full blur-2xl"></div>
-                
-                <div class="w-16 h-16 bg-gradient-to-tr from-amber-400 to-yellow-200 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-amber-500/30 text-slate-950 text-3xl font-black">
+                <div class="w-16 h-16 bg-gradient-to-tr from-amber-400 to-yellow-200 rounded-2xl mx-auto flex items-center justify-center shadow-lg text-slate-950 text-3xl font-black">
                     <i class="fa-solid fa-trophy"></i>
                 </div>
-
                 <div class="space-y-1">
-                    <span class="text-[10px] font-extrabold tracking-widest bg-amber-400/20 text-amber-300 border border-amber-400/40 px-3 py-1 rounded-full uppercase">
-                        Master Town Planner
-                    </span>
-                    <h2 class="text-2xl font-black text-white pt-1">TAHNIAH!</h2>
-                    <p class="text-xs text-slate-300"><span id="victory-player-name" class="font-bold text-amber-300">Pemain</span>, anda berjaya merancang bandar 3D yang mapan!</p>
+                    <h2 class="text-2xl font-black text-white">TAHNIAH!</h2>
+                    <p class="text-xs text-slate-300"><span id="victory-player-name" class="font-bold text-amber-300">Pemain</span>, anda berjaya merancang bandar 3D!</p>
                 </div>
-
                 <div class="bg-slate-900/80 border border-slate-700/80 p-3 rounded-2xl text-left space-y-2 text-xs">
                     <div class="flex justify-between border-b border-slate-800 pb-1">
-                        <span class="text-slate-400">Peta Dimainkan:</span>
+                        <span class="text-slate-400">Peta:</span>
                         <span id="m-stat-map" class="font-black text-emerald-400">Bandar Desa</span>
                     </div>
                     <div class="flex justify-between border-b border-slate-800 pb-1">
-                        <span class="text-slate-400">Pematuhan Zon Realistik:</span>
-                        <span class="font-black text-emerald-400">100% Sempurna</span>
-                    </div>
-                    <div class="flex justify-between border-b border-slate-800 pb-1">
-                        <span class="text-slate-400">Masa Perancangan:</span>
-                        <span id="m-stat-time" class="font-black text-cyan-400 font-mono">01:20.4</span>
+                        <span class="text-slate-400">Masa:</span>
+                        <span id="m-stat-time" class="font-black text-cyan-400 font-mono">00:00.0</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-slate-400">Kedudukan Leaderboard:</span>
+                        <span class="text-slate-400">Kedudukan:</span>
                         <span id="m-stat-rank" class="font-black text-amber-400">#1</span>
                     </div>
                 </div>
-
                 <div class="space-y-2">
-                    <button onclick="startNextPlayerTurn()" class="w-full py-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/20">
+                    <button onclick="startNextPlayerTurn()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider">
                         <i class="fa-solid fa-user-plus mr-1"></i> Pemain Seterusnya / Giliran Baru
                     </button>
-                    <button onclick="closeVictoryModal(); openLeaderboardModal();" class="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-bold text-slate-300">
-                        <i class="fa-solid fa-list-ol mr-1"></i> Lihat Full Leaderboard
+                    <button onclick="closeVictoryModal(); openLeaderboardModal();" class="w-full py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-300">
+                        Lihat Leaderboard
                     </button>
                 </div>
             </div>
         </div>
-
     </div>
 
-    <!-- MAIN GAME ENGINE & THREE.JS LOGIC -->
     <script>
-        /* WEB AUDIO SYNTHESIZER */
         const AudioEngine = {
             ctx: null,
             enabled: true,
@@ -415,397 +359,8 @@
             AudioEngine.enabled = !AudioEngine.enabled;
             const icon = document.getElementById('audio-icon');
             icon.className = AudioEngine.enabled ? "fa-solid fa-volume-high text-xs" : "fa-solid fa-volume-xmark text-xs text-rose-400";
-            showStatus(AudioEngine.enabled ? "Audio Diaktifkan" : "Audio Dimatikan");
         }
 
-        /* ZONING DEFINITIONS */
         const ZONES = {
-            res: { id: 'res', name: 'Perumahan', hex: 0xf59e0b, cssColor: '#f59e0b', desc: 'Zon Perumahan Mapan & Banglo' },
-            com: { id: 'com', name: 'Komersial', hex: 0x3b82f6, cssColor: '#3b82f6', desc: 'Zon Menara Komersial & Perniagaan' },
-            ind: { id: 'ind', name: 'Industri', hex: 0xa855f7, cssColor: '#a855f7', desc: 'Zon Industri & Pembuatan Heavy' },
-            agr: { id: 'agr', name: 'Pertanian', hex: 0x84cc16, cssColor: '#84cc16', desc: 'Zon Rumah Hijau & Pertanian Moden' },
-            prk: { id: 'prk', name: 'Taman Awam', hex: 0x10b981, cssColor: '#10b981', desc: 'Zon Rekreasi Awam & Landskap Green' }
-        };
-
-        /* BUILDINGS DEFINITIONS */
-        const BUILDINGS = [
-            { id: 'b_res_house', name: 'Kawasan Perumahan', zone: 'res', icon: 'fa-house-chimney-window', color: '#f59e0b' },
-            { id: 'b_com_shop', name: 'Menara Komersial', zone: 'com', icon: 'fa-building', color: '#3b82f6' },
-            { id: 'b_ind_factory', name: 'Kompleks Industri', zone: 'ind', icon: 'fa-industry', color: '#a855f7' },
-            { id: 'b_agr_farm', name: 'Rumah Hijau & Ladang', zone: 'agr', icon: 'fa-wheat-awn', color: '#84cc16' },
-            { id: 'b_prk_tree', name: 'Taman Awam & Kolam', zone: 'prk', icon: 'fa-tree', color: '#10b981' }
-        ];
-
-        /* PRESET MAPS */
-        const PRESET_MAPS = {
-            desa: {
-                name: 'Bandar Desa',
-                layout: [
-                    ['res', 'res', 'com', 'com', 'prk', 'prk'],
-                    ['res', 'res', 'com', 'prk', 'prk', 'prk'],
-                    ['prk', 'res', 'com', 'prk', 'agr', 'agr'],
-                    ['prk', 'res', 'ind', 'ind', 'agr', 'agr'],
-                    ['prk', 'com', 'ind', 'ind', 'agr', 'agr'],
-                    ['prk', 'com', 'ind', 'ind', 'prk', 'prk']
-                ]
-            },
-            pusat: {
-                name: 'Metropol',
-                layout: [
-                    ['res', 'res', 'res', 'com', 'com', 'com'],
-                    ['res', 'res', 'res', 'com', 'com', 'com'],
-                    ['prk', 'prk', 'res', 'com', 'com', 'com'],
-                    ['prk', 'prk', 'res', 'com', 'com', 'ind'],
-                    ['agr', 'agr', 'prk', 'ind', 'ind', 'ind'],
-                    ['agr', 'agr', 'prk', 'ind', 'ind', 'ind']
-                ]
-            },
-            industri: {
-                name: 'Zon Industri & Pertanian',
-                layout: [
-                    ['prk', 'prk', 'res', 'res', 'com', 'com'],
-                    ['prk', 'prk', 'res', 'res', 'com', 'com'],
-                    ['agr', 'agr', 'prk', 'prk', 'ind', 'ind'],
-                    ['agr', 'agr', 'agr', 'ind', 'ind', 'ind'],
-                    ['agr', 'agr', 'agr', 'ind', 'ind', 'ind'],
-                    ['agr', 'agr', 'agr', 'ind', 'ind', 'ind']
-                ]
-            }
-        };
-
-        function generateRandomMapLayout() {
-            const keys = ['res', 'com', 'ind', 'agr', 'prk'];
-            const arr = [];
-            for (let r = 0; r < 6; r++) {
-                const row = [];
-                for (let c = 0; c < 6; c++) {
-                    row.push(keys[Math.floor(Math.random() * keys.length)]);
-                }
-                arr.push(row);
-            }
-            return arr;
-        }
-
-        /* GAME STATE */
-        const gridSize = 6;
-        let selectedBuilding = 'b_res_house';
-        let gridData = [];
-        let animatedMeshes = [];
-        let isDragging = false;
-        let draggedBuildingId = null;
-
-        let currentPlayerName = "Pemain";
-        let currentMapKey = "desa";
-        let currentMapName = "Bandar Desa";
-
-        let startTime = 0;
-        let elapsedMs = 0;
-        let timerInterval = null;
-        let isTimerRunning = false;
-
-        /* THREE.JS SCENE VARIABLES */
-        let scene, camera, renderer, controls;
-        let raycaster, mouse;
-        let gridGroup, buildingsGroup, zonesGroup;
-        let hoverTileMesh, sunLight;
-        let isSunOrbiting = true;
-        let isWireframe = false;
-
-        /* PERSISTENT LEADERBOARD STORAGE ENGINE */
-        const LB_KEY = 'simcity_3d_leaderboard_v2';
-
-        function getLeaderboard() {
-            try {
-                const raw = localStorage.getItem(LB_KEY);
-                return raw ? JSON.parse(raw) : [];
-            } catch(e) {
-                return [];
-            }
-        }
-
-        function saveLeaderboardEntry(name, mapName, timeMs) {
-            const list = getLeaderboard();
-            const entry = {
-                id: Date.now() + "_" + Math.random().toString(36).substr(2, 4),
-                name: name,
-                map: mapName,
-                timeMs: timeMs,
-                date: new Date().toLocaleDateString('ms-MY')
-            };
-            list.push(entry);
-            list.sort((a, b) => a.timeMs - b.timeMs);
-            localStorage.setItem(LB_KEY, JSON.stringify(list));
-
-            const rankIndex = list.findIndex(item => item.id === entry.id);
-            return rankIndex !== -1 ? `#${rankIndex + 1}` : "Top";
-        }
-
-        function clearLeaderboardPermanent() {
-            if (confirm("Adakah anda pasti ingin memadam SEMUA rekod leaderboard secara kekal?")) {
-                if (confirm("Pengesahan kedua: Tindakan ini tidak boleh dibatalkan!")) {
-                    localStorage.removeItem(LB_KEY);
-                    renderLeaderboardList();
-                    showStatus("Leaderboard telah dipadamkan.");
-                }
-            }
-        }
-
-        function renderLeaderboardList() {
-            const list = getLeaderboard();
-            const filterMap = document.getElementById('lb-filter-preset').value;
-            const container = document.getElementById('leaderboard-list');
-            container.innerHTML = '';
-
-            const filtered = filterMap === 'all' ? list : list.filter(item => item.map === filterMap);
-
-            if (filtered.length === 0) {
-                container.innerHTML = `<div class="text-xs text-slate-500 py-6">Tiada rekod mendaftar bagi kategori ini.</div>`;
-                return;
-            }
-
-            filtered.forEach((item, idx) => {
-                const row = document.createElement('div');
-                row.className = `flex justify-between items-center p-2 rounded-xl text-xs ${idx === 0 ? 'bg-amber-500/20 border border-amber-400/40 text-amber-300' : 'bg-slate-900/60 text-slate-300'}`;
-                row.innerHTML = `
-                    <div class="flex items-center gap-2 truncate">
-                        <span class="w-5 font-black text-center ${idx === 0 ? 'text-amber-400' : 'text-slate-500'}">#${idx + 1}</span>
-                        <div class="truncate">
-                            <div class="font-bold truncate">${item.name}</div>
-                            <div class="text-[9px] text-slate-400">${item.map} • ${item.date}</div>
-                        </div>
-                    </div>
-                    <span class="font-mono font-bold text-cyan-400 ml-2">${formatTimeMs(item.timeMs)}</span>
-                `;
-                container.appendChild(row);
-            });
-        }
-
-        function openLeaderboardModal() {
-            renderLeaderboardList();
-            document.getElementById('modal-leaderboard').classList.remove('hidden');
-        }
-
-        function closeLeaderboardModal() {
-            document.getElementById('modal-leaderboard').classList.add('hidden');
-        }
-
-        /* HIGH-DETAIL PROCEDURAL 3D BUILDING GENERATOR */
-        function createBuilding3DMesh(buildingId) {
-            const group = new THREE.Group();
-
-            if (buildingId === 'b_res_house') {
-                const base = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.86, 0.04, 0.86),
-                    new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 })
-                );
-                base.position.y = 0.02;
-                base.receiveShadow = true;
-                group.add(base);
-
-                const wall1 = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.42, 0.38, 0.42),
-                    new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.4 })
-                );
-                wall1.position.set(-0.16, 0.23, -0.16);
-                wall1.castShadow = true;
-                group.add(wall1);
-
-                const roof1 = new THREE.Mesh(
-                    new THREE.ConeGeometry(0.36, 0.28, 4),
-                    new THREE.MeshStandardMaterial({ color: 0xb91c1c, roughness: 0.3 })
-                );
-                roof1.position.set(-0.16, 0.56, -0.16);
-                roof1.rotation.y = Math.PI / 4;
-                roof1.castShadow = true;
-                group.add(roof1);
-
-                const wall2 = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.32, 0.3, 0.32),
-                    new THREE.MeshStandardMaterial({ color: 0xffedd5, roughness: 0.5 })
-                );
-                wall2.position.set(0.18, 0.19, 0.18);
-                wall2.castShadow = true;
-                group.add(wall2);
-
-                const roof2 = new THREE.Mesh(
-                    new THREE.ConeGeometry(0.26, 0.22, 4),
-                    new THREE.MeshStandardMaterial({ color: 0x3b82f6, roughness: 0.3 })
-                );
-                roof2.position.set(0.18, 0.45, 0.18);
-                roof2.rotation.y = Math.PI / 4;
-                roof2.castShadow = true;
-                group.add(roof2);
-
-            } else if (buildingId === 'b_com_shop') {
-                const tower = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.65, 1.1, 0.65),
-                    new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.2 })
-                );
-                tower.position.y = 0.55;
-                tower.castShadow = true;
-                group.add(tower);
-
-                // Glass strip windows
-                for(let i=0; i<3; i++) {
-                    const strip = new THREE.Mesh(
-                        new THREE.BoxGeometry(0.68, 0.18, 0.68),
-                        new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.5, roughness: 0.1 })
-                    );
-                    strip.position.y = 0.3 + i * 0.32;
-                    group.add(strip);
-                }
-
-                const helipad = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.28, 0.28, 0.04, 16),
-                    new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.4 })
-                );
-                helipad.position.y = 1.12;
-                group.add(helipad);
-
-            } else if (buildingId === 'b_ind_factory') {
-                const warehouse = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.82, 0.5, 0.62),
-                    new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.6 })
-                );
-                warehouse.position.y = 0.25;
-                warehouse.castShadow = true;
-                group.add(warehouse);
-
-                // Smokestacks
-                const stack1 = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.08, 0.1, 0.9, 12),
-                    new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.5 })
-                );
-                stack1.position.set(-0.22, 0.65, 0);
-                stack1.castShadow = true;
-                group.add(stack1);
-
-                const stack2 = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.06, 0.08, 0.7, 12),
-                    new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.5 })
-                );
-                stack2.position.set(0.22, 0.55, 0);
-                stack2.castShadow = true;
-                group.add(stack2);
-
-            } else if (buildingId === 'b_agr_farm') {
-                const soil = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.84, 0.08, 0.84),
-                    new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 })
-                );
-                soil.position.y = 0.04;
-                soil.receiveShadow = true;
-                group.add(soil);
-
-                // Greenhouse arches
-                for(let i=0; i<3; i++) {
-                    const gh = new THREE.Mesh(
-                        new THREE.CylinderGeometry(0.18, 0.18, 0.7, 12, 1, false, 0, Math.PI),
-                        new THREE.MeshStandardMaterial({ color: 0xa5f3fc, transparent: true, opacity: 0.7, roughness: 0.1 })
-                    );
-                    gh.rotation.z = Math.PI / 2;
-                    gh.position.set(-0.25 + i * 0.25, 0.22, 0);
-                    group.add(gh);
-                }
-
-            } else if (buildingId === 'b_prk_tree') {
-                const grass = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.88, 0.06, 0.88),
-                    new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.8 })
-                );
-                grass.position.y = 0.03;
-                grass.receiveShadow = true;
-                group.add(grass);
-
-                // Central Fountain Pond
-                const pond = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.3, 0.3, 0.08, 16),
-                    new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1 })
-                );
-                pond.position.set(0, 0.07, 0);
-                group.add(pond);
-
-                // Trees
-                for(let i=0; i<2; i++) {
-                    const trunk = new THREE.Mesh(
-                        new THREE.CylinderGeometry(0.04, 0.05, 0.25, 8),
-                        new THREE.MeshStandardMaterial({ color: 0x713f12 })
-                    );
-                    const foliage = new THREE.Mesh(
-                        new THREE.DodecahedronGeometry(0.22),
-                        new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.5 })
-                    );
-                    const x = i === 0 ? -0.25 : 0.25;
-                    const z = i === 0 ? -0.25 : 0.25;
-                    trunk.position.set(x, 0.15, z);
-                    foliage.position.set(x, 0.35, z);
-                    group.add(trunk);
-                    group.add(foliage);
-                }
-            }
-
-            return group;
-        }
-
-        /* THREE.JS INITIALIZATION */
-        function initThreeScene() {
-            const container = document.getElementById('canvas-container');
-            container.innerHTML = '';
-
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x080d1a);
-            scene.fog = new THREE.FogExp2(0x080d1a, 0.035);
-
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 10.5, 9.5);
-
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.2;
-            container.appendChild(renderer.domElement);
-
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.maxPolarAngle = Math.PI / 2.2;
-            controls.minDistance = 5;
-            controls.maxDistance = 22;
-            controls.target.set(0, 0, 0);
-
-            // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
-            scene.add(ambientLight);
-
-            sunLight = new THREE.DirectionalLight(0xfffbeb, 1.4);
-            sunLight.position.set(8, 14, 6);
-            sunLight.castShadow = true;
-            sunLight.shadow.mapSize.width = 2048;
-            sunLight.shadow.mapSize.height = 2048;
-            sunLight.shadow.camera.near = 0.5;
-            sunLight.shadow.camera.far = 30;
-            const d = 7;
-            sunLight.shadow.camera.left = -d;
-            sunLight.shadow.camera.right = d;
-            sunLight.shadow.camera.top = d;
-            sunLight.shadow.camera.bottom = -d;
-            sunLight.shadow.bias = -0.0005;
-            scene.add(sunLight);
-
-            raycaster = new THREE.Raycaster();
-            mouse = new THREE.Vector2();
-
-            gridGroup = new THREE.Group();
-            zonesGroup = new THREE.Group();
-            buildingsGroup = new THREE.Group();
-            scene.add(gridGroup);
-            scene.add(zonesGroup);
-            scene.add(buildingsGroup);
-
-            buildGridBoard();
-
-            window.addEventListener('resize', onWindowResize);
-            renderer.domElement.addEventListener('pointermove', onPointerMove
+            res: { id: 'res', name: 'Perumahan', hex: 0xf59e0b, desc: 'Zon Perumahan Mapan & Banglo' },
+            com: { id: 'com', name: 'Komersial', hex: 0x3b82f6
