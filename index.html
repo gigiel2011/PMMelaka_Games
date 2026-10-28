@@ -506,8 +506,10 @@
         /* THREE.JS SCENE VARIABLES */
         let scene, camera, renderer, controls;
         let raycaster, mouse;
-        let gridGroup, buildingsGroup, zonesGroup, particlesGroup;
+        let gridGroup, buildingsGroup, zonesGroup;
         let hoverTileMesh, sunLight;
+        let isSunOrbiting = true;
+        let isWireframe = false;
 
         /* PERSISTENT LEADERBOARD STORAGE ENGINE */
         const LB_KEY = 'simcity_3d_leaderboard_v2';
@@ -591,17 +593,7 @@
         function createBuilding3DMesh(buildingId) {
             const group = new THREE.Group();
 
-            // Materials
-            const glassMat = new THREE.MeshStandardMaterial({
-                color: 0x93c5fd,
-                metalness: 0.9,
-                roughness: 0.1,
-                emissive: 0x1e3a8a,
-                emissiveIntensity: 0.3
-            });
-
             if (buildingId === 'b_res_house') {
-                // Concrete/Pavement Base
                 const base = new THREE.Mesh(
                     new THREE.BoxGeometry(0.86, 0.04, 0.86),
                     new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 })
@@ -610,7 +602,6 @@
                 base.receiveShadow = true;
                 group.add(base);
 
-                // House 1 (Main Villa)
                 const wall1 = new THREE.Mesh(
                     new THREE.BoxGeometry(0.42, 0.38, 0.42),
                     new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.4 })
@@ -619,740 +610,202 @@
                 wall1.castShadow = true;
                 group.add(wall1);
 
-                // Pitched Roof
                 const roof1 = new THREE.Mesh(
                     new THREE.ConeGeometry(0.36, 0.28, 4),
                     new THREE.MeshStandardMaterial({ color: 0xb91c1c, roughness: 0.3 })
                 );
-                roof1.position.set(-0.16, 0.54, -0.16);
+                roof1.position.set(-0.16, 0.56, -0.16);
                 roof1.rotation.y = Math.PI / 4;
                 roof1.castShadow = true;
                 group.add(roof1);
 
-                // Windows
-                for (let i = 0; i < 2; i++) {
-                    const win = new THREE.Mesh(new THREE.PlaneGeometry(0.08, 0.12), glassMat);
-                    win.position.set(-0.16 + (i * 0.16 - 0.08), 0.26, 0.051);
-                    group.add(win);
-                }
-
-                // House 2 (Modern Flat-roof Annex)
                 const wall2 = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.34, 0.3, 0.34),
-                    new THREE.MeshStandardMaterial({ color: 0xf3f4f6, roughness: 0.3 })
+                    new THREE.BoxGeometry(0.32, 0.3, 0.32),
+                    new THREE.MeshStandardMaterial({ color: 0xffedd5, roughness: 0.5 })
                 );
                 wall2.position.set(0.18, 0.19, 0.18);
                 wall2.castShadow = true;
                 group.add(wall2);
 
-                // Glass Balcony
-                const balc = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.06, 0.1), glassMat);
-                balc.position.set(0.18, 0.32, 0.32);
-                group.add(balc);
-
-                // Garden Tree
-                const trunk = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.02, 0.03, 0.18),
-                    new THREE.MeshStandardMaterial({ color: 0x78350f })
+                const roof2 = new THREE.Mesh(
+                    new THREE.ConeGeometry(0.26, 0.22, 4),
+                    new THREE.MeshStandardMaterial({ color: 0x3b82f6, roughness: 0.3 })
                 );
-                trunk.position.set(0.22, 0.13, -0.22);
-                const foliage = new THREE.Mesh(
-                    new THREE.DodecahedronGeometry(0.12),
-                    new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.6 })
-                );
-                foliage.position.set(0.22, 0.26, -0.22);
-                foliage.castShadow = true;
-                group.add(trunk);
-                group.add(foliage);
+                roof2.position.set(0.18, 0.45, 0.18);
+                roof2.rotation.y = Math.PI / 4;
+                roof2.castShadow = true;
+                group.add(roof2);
 
             } else if (buildingId === 'b_com_shop') {
-                // High-rise Commercial Skyscraper
-                const base = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.86, 0.06, 0.86),
-                    new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7 })
+                const tower = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.65, 1.1, 0.65),
+                    new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.2 })
                 );
-                base.position.y = 0.03;
-                group.add(base);
-
-                // Main Tower Body
-                const towerGeo = new THREE.BoxGeometry(0.6, 1.1, 0.6);
-                const towerMat = new THREE.MeshStandardMaterial({ color: 0x1e40af, metalness: 0.5, roughness: 0.2 });
-                const tower = new THREE.Mesh(towerGeo, towerMat);
-                tower.position.y = 0.61;
+                tower.position.y = 0.55;
                 tower.castShadow = true;
                 group.add(tower);
 
-                // Striped Glass Windows on Facade
-                for (let floor = 0; floor < 5; floor++) {
-                    const winStrip = new THREE.Mesh(
-                        new THREE.BoxGeometry(0.62, 0.08, 0.62),
-                        glassMat
+                // Glass strip windows
+                for(let i=0; i<3; i++) {
+                    const strip = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.68, 0.18, 0.68),
+                        new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.5, roughness: 0.1 })
                     );
-                    winStrip.position.y = 0.25 + floor * 0.18;
-                    group.add(winStrip);
+                    strip.position.y = 0.3 + i * 0.32;
+                    group.add(strip);
                 }
 
-                // Roof Helipad & AC Units
-                const roofPad = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.2, 0.2, 0.04, 16),
-                    new THREE.MeshStandardMaterial({ color: 0xef4444 })
+                const helipad = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.28, 0.28, 0.04, 16),
+                    new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.4 })
                 );
-                roofPad.position.y = 1.18;
-                group.add(roofPad);
-
-                const acBox = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.12, 0.08, 0.12),
-                    new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8 })
-                );
-                acBox.position.set(-0.16, 1.2, -0.16);
-                group.add(acBox);
+                helipad.position.y = 1.12;
+                group.add(helipad);
 
             } else if (buildingId === 'b_ind_factory') {
-                // Heavy Industrial Complex
-                const base = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.88, 0.04, 0.88),
-                    new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 })
+                const warehouse = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.82, 0.5, 0.62),
+                    new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.6 })
                 );
-                base.position.y = 0.02;
-                group.add(base);
+                warehouse.position.y = 0.25;
+                warehouse.castShadow = true;
+                group.add(warehouse);
 
-                // Factory Warehouse Body
-                const body = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.7, 0.45, 0.55),
-                    new THREE.MeshStandardMaterial({ color: 0x7e22ce, roughness: 0.5, metalness: 0.3 })
+                // Smokestacks
+                const stack1 = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.08, 0.1, 0.9, 12),
+                    new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.5 })
                 );
-                body.position.set(-0.05, 0.245, -0.1);
-                body.castShadow = true;
-                group.add(body);
+                stack1.position.set(-0.22, 0.65, 0);
+                stack1.castShadow = true;
+                group.add(stack1);
 
-                // Corrugated Roof Roof Ridges
-                for (let r = 0; r < 3; r++) {
-                    const ridge = new THREE.Mesh(
-                        new THREE.CylinderGeometry(0.08, 0.08, 0.7, 3),
-                        new THREE.MeshStandardMaterial({ color: 0x581c87 })
-                    );
-                    ridge.rotation.z = Math.PI / 2;
-                    ridge.position.set(-0.05, 0.48, -0.23 + r * 0.14);
-                    group.add(ridge);
-                }
-
-                // Twin Chimney Smokestacks
-                for (let s = 0; s < 2; s++) {
-                    const stack = new THREE.Mesh(
-                        new THREE.CylinderGeometry(0.05, 0.07, 0.75, 12),
-                        new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4 })
-                    );
-                    stack.position.set(0.28, 0.4, 0.12 + s * 0.16);
-                    stack.castShadow = true;
-                    group.add(stack);
-
-                    // Red warning stripe top
-                    const stripe = new THREE.Mesh(
-                        new THREE.CylinderGeometry(0.051, 0.053, 0.1, 12),
-                        new THREE.MeshStandardMaterial({ color: 0xdc2626 })
-                    );
-                    stripe.position.set(0.28, 0.72, 0.12 + s * 0.16);
-                    group.add(stripe);
-                }
-
-                // Storage Silo Tank
-                const silo = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.12, 0.12, 0.5, 16),
-                    new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.8, roughness: 0.2 })
+                const stack2 = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.06, 0.08, 0.7, 12),
+                    new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.5 })
                 );
-                silo.position.set(-0.28, 0.27, 0.25);
-                silo.castShadow = true;
-                group.add(silo);
+                stack2.position.set(0.22, 0.55, 0);
+                stack2.castShadow = true;
+                group.add(stack2);
 
             } else if (buildingId === 'b_agr_farm') {
-                // Agricultural Greenhouse & Fields
                 const soil = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.88, 0.05, 0.88),
-                    new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.9 })
+                    new THREE.BoxGeometry(0.84, 0.08, 0.84),
+                    new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 })
                 );
-                soil.position.y = 0.025;
+                soil.position.y = 0.04;
                 soil.receiveShadow = true;
                 group.add(soil);
 
-                // Crop Furrows
-                for (let f = 0; f < 4; f++) {
-                    const furrow = new THREE.Mesh(
-                        new THREE.BoxGeometry(0.38, 0.04, 0.07),
-                        new THREE.MeshStandardMaterial({ color: 0xa3e635 })
+                // Greenhouse arches
+                for(let i=0; i<3; i++) {
+                    const gh = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.18, 0.18, 0.7, 12, 1, false, 0, Math.PI),
+                        new THREE.MeshStandardMaterial({ color: 0xa5f3fc, transparent: true, opacity: 0.7, roughness: 0.1 })
                     );
-                    furrow.position.set(-0.2, 0.06, -0.28 + f * 0.18);
-                    group.add(furrow);
+                    gh.rotation.z = Math.PI / 2;
+                    gh.position.set(-0.25 + i * 0.25, 0.22, 0);
+                    group.add(gh);
                 }
 
-                // Modern Glass Greenhouse
-                const ghBody = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.38, 0.32, 0.65),
-                    new THREE.MeshStandardMaterial({ color: 0xd97706, transparent: true, opacity: 0.8, roughness: 0.1 })
-                );
-                ghBody.position.set(0.2, 0.2, 0.05);
-                ghBody.castShadow = true;
-                group.add(ghBody);
-
-                // Greenhouse Roof Arches
-                const ghRoof = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.19, 0.19, 0.65, 8, 1, false, 0, Math.PI),
-                    new THREE.MeshStandardMaterial({ color: 0xfef08a, transparent: true, opacity: 0.85 })
-                );
-                ghRoof.rotation.x = Math.PI / 2;
-                ghRoof.position.set(0.2, 0.36, 0.05);
-                group.add(ghRoof);
-
-                // Wind Turbine
-                const pole = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.02, 0.03, 0.6),
-                    new THREE.MeshStandardMaterial({ color: 0xf8fafc, metalness: 0.8 })
-                );
-                pole.position.set(-0.22, 0.32, 0.25);
-                group.add(pole);
-
             } else if (buildingId === 'b_prk_tree') {
-                // Public Park with Lake & Trees
-                const parkBase = new THREE.Mesh(
+                const grass = new THREE.Mesh(
                     new THREE.BoxGeometry(0.88, 0.06, 0.88),
-                    new THREE.MeshStandardMaterial({ color: 0x059669, roughness: 0.8 })
+                    new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.8 })
                 );
-                parkBase.position.y = 0.03;
-                parkBase.receiveShadow = true;
-                group.add(parkBase);
+                grass.position.y = 0.03;
+                grass.receiveShadow = true;
+                group.add(grass);
 
-                // Decorative Water Pond
+                // Central Fountain Pond
                 const pond = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.22, 0.22, 0.02, 16),
-                    new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.8 })
+                    new THREE.CylinderGeometry(0.3, 0.3, 0.08, 16),
+                    new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1 })
                 );
-                pond.position.set(-0.15, 0.065, 0.15);
+                pond.position.set(0, 0.07, 0);
                 group.add(pond);
 
-                // Fountain Center
-                const fount = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.04, 0.06, 0.12),
-                    new THREE.MeshStandardMaterial({ color: 0xe2e8f0 })
-                );
-                fount.position.set(-0.15, 0.12, 0.15);
-                group.add(fount);
-
-                // 3 Trees
-                const treePositions = [[0.22, -0.22], [-0.22, -0.22], [0.22, 0.22]];
-                treePositions.forEach(([tx, tz]) => {
+                // Trees
+                for(let i=0; i<2; i++) {
                     const trunk = new THREE.Mesh(
-                        new THREE.CylinderGeometry(0.025, 0.035, 0.2, 6),
-                        new THREE.MeshStandardMaterial({ color: 0x78350f })
+                        new THREE.CylinderGeometry(0.04, 0.05, 0.25, 8),
+                        new THREE.MeshStandardMaterial({ color: 0x713f12 })
                     );
-                    trunk.position.set(tx, 0.15, tz);
-
-                    const top = new THREE.Mesh(
-                        new THREE.DodecahedronGeometry(0.15),
-                        new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.5 })
+                    const foliage = new THREE.Mesh(
+                        new THREE.DodecahedronGeometry(0.22),
+                        new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.5 })
                     );
-                    top.position.set(tx, 0.32, tz);
-                    top.castShadow = true;
+                    const x = i === 0 ? -0.25 : 0.25;
+                    const z = i === 0 ? -0.25 : 0.25;
+                    trunk.position.set(x, 0.15, z);
+                    foliage.position.set(x, 0.35, z);
                     group.add(trunk);
-                    group.add(top);
-                });
+                    group.add(foliage);
+                }
             }
 
             return group;
         }
 
-        /* THREE.JS SCENE CREATION */
-        function init3DScene() {
+        /* THREE.JS INITIALIZATION */
+        function initThreeScene() {
             const container = document.getElementById('canvas-container');
+            container.innerHTML = '';
 
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x080d1a);
             scene.fog = new THREE.FogExp2(0x080d1a, 0.035);
 
-            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-            camera.position.set(8.5, 11, 12);
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 10.5, 9.5);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.1;
+            renderer.toneMappingExposure = 1.2;
             container.appendChild(renderer.domElement);
 
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
-            controls.maxPolarAngle = Math.PI / 2.15;
-            controls.minDistance = 4;
-            controls.maxDistance = 25;
+            controls.maxPolarAngle = Math.PI / 2.2;
+            controls.minDistance = 5;
+            controls.maxDistance = 22;
+            controls.target.set(0, 0, 0);
 
-            // Ambient & Sun Lighting
-            scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+            scene.add(ambientLight);
 
-            sunLight = new THREE.DirectionalLight(0xfff7ed, 1.4);
-            sunLight.position.set(12, 18, 10);
+            sunLight = new THREE.DirectionalLight(0xfffbeb, 1.4);
+            sunLight.position.set(8, 14, 6);
             sunLight.castShadow = true;
             sunLight.shadow.mapSize.width = 2048;
             sunLight.shadow.mapSize.height = 2048;
-            sunLight.shadow.bias = -0.0001;
+            sunLight.shadow.camera.near = 0.5;
+            sunLight.shadow.camera.far = 30;
+            const d = 7;
+            sunLight.shadow.camera.left = -d;
+            sunLight.shadow.camera.right = d;
+            sunLight.shadow.camera.top = d;
+            sunLight.shadow.camera.bottom = -d;
+            sunLight.shadow.bias = -0.0005;
             scene.add(sunLight);
-
-            gridGroup = new THREE.Group();
-            buildingsGroup = new THREE.Group();
-            zonesGroup = new THREE.Group();
-            particlesGroup = new THREE.Group();
-
-            scene.add(gridGroup);
-            scene.add(buildingsGroup);
-            scene.add(zonesGroup);
-            scene.add(particlesGroup);
 
             raycaster = new THREE.Raycaster();
             mouse = new THREE.Vector2();
 
-            // Hover indicator tile
-            const hoverGeo = new THREE.PlaneGeometry(0.96, 0.96);
-            hoverGeo.rotateX(-Math.PI / 2);
-            const hoverMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
-            hoverTileMesh = new THREE.Mesh(hoverGeo, hoverMat);
-            hoverTileMesh.position.y = 0.03;
-            hoverTileMesh.visible = false;
-            scene.add(hoverTileMesh);
+            gridGroup = new THREE.Group();
+            zonesGroup = new THREE.Group();
+            buildingsGroup = new THREE.Group();
+            scene.add(gridGroup);
+            scene.add(zonesGroup);
+            scene.add(buildingsGroup);
+
+            buildGridBoard();
 
             window.addEventListener('resize', onWindowResize);
-            renderer.domElement.addEventListener('pointermove', onPointerMove);
-            renderer.domElement.addEventListener('pointerdown', onPointerDown);
-        }
-
-        /* BUILD 6x6 MAP LAYOUT */
-        function loadMapGrid(mapKey) {
-            currentMapKey = mapKey;
-
-            let layout;
-            if (mapKey === 'rawak') {
-                layout = generateRandomMapLayout();
-                currentMapName = 'Pelan Rawak';
-            } else if (PRESET_MAPS[mapKey]) {
-                layout = PRESET_MAPS[mapKey].layout;
-                currentMapName = PRESET_MAPS[mapKey].name;
-            } else {
-                layout = PRESET_MAPS.desa.layout;
-                currentMapName = PRESET_MAPS.desa.name;
-            }
-
-            document.getElementById('hud-map-name').textContent = currentMapName;
-
-            while (gridGroup.children.length > 0) gridGroup.remove(gridGroup.children[0]);
-            while (buildingsGroup.children.length > 0) buildingsGroup.remove(buildingsGroup.children[0]);
-            while (zonesGroup.children.length > 0) zonesGroup.remove(zonesGroup.children[0]);
-
-            gridData = [];
-            const offset = (gridSize - 1) / 2;
-
-            // Base Concrete Terrain Platform
-            const baseGeo = new THREE.BoxGeometry(gridSize + 0.6, 0.4, gridSize + 0.6);
-            const baseMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 });
-            const baseMesh = new THREE.Mesh(baseGeo, baseMat);
-            baseMesh.position.set(0, -0.21, 0);
-            baseMesh.receiveShadow = true;
-            gridGroup.add(baseMesh);
-
-            for (let r = 0; r < gridSize; r++) {
-                for (let c = 0; c < gridSize; c++) {
-                    const idx = r * gridSize + c;
-                    const x = c - offset;
-                    const z = r - offset;
-                    const zoneKey = layout[r][c];
-                    const zoneObj = ZONES[zoneKey];
-
-                    const tileGeo = new THREE.PlaneGeometry(0.92, 0.92);
-                    tileGeo.rotateX(-Math.PI / 2);
-                    const tileMat = new THREE.MeshStandardMaterial({ color: zoneObj.hex, roughness: 0.6 });
-                    const tileMesh = new THREE.Mesh(tileGeo, tileMat);
-                    tileMesh.position.set(x, 0.01, z);
-                    tileMesh.receiveShadow = true;
-                    tileMesh.userData = { gridIndex: idx, row: r, col: c };
-                    zonesGroup.add(tileMesh);
-
-                    const borderGeo = new THREE.RingGeometry(0.44, 0.46, 4);
-                    borderGeo.rotateX(-Math.PI / 2);
-                    const borderMat = new THREE.MeshBasicMaterial({ color: zoneObj.hex, side: THREE.DoubleSide });
-                    const borderMesh = new THREE.Mesh(borderGeo, borderMat);
-                    borderMesh.position.set(x, 0.015, z);
-                    borderMesh.rotation.y = Math.PI / 4;
-                    zonesGroup.add(borderMesh);
-
-                    gridData.push({
-                        row: r,
-                        col: c,
-                        x: x,
-                        z: z,
-                        zone: zoneKey,
-                        building: null,
-                        zoneTileMesh: tileMesh,
-                        buildingGroup: null
-                    });
-                }
-            }
-
-            camera.position.set(8.5, 11, 12);
-            controls.target.set(0, 0, 0);
-            controls.update();
-
-            updateAnalytics();
-            showStatus(`Peta '${currentMapName}' sedia untuk perancangan!`);
-        }
-
-        /* POINTER & RAYCAST INTERACTION */
-        let pointerDownPos = { x: 0, y: 0 };
-
-        function onPointerMove(e) {
-            const rect = renderer.domElement.getBoundingClientRect();
-            mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-            mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(zonesGroup.children);
-
-            if (intersects.length > 0) {
-                const hitObj = intersects[0].object;
-                const idx = hitObj.userData.gridIndex;
-                if (idx !== undefined) {
-                    const cell = gridData[idx];
-                    hoverTileMesh.position.set(cell.x, 0.03, cell.z);
-                    hoverTileMesh.visible = true;
-
-                    const tooltip = document.getElementById('tooltip-3d');
-                    tooltip.style.left = `${e.clientX + 12}px`;
-                    tooltip.style.top = `${e.clientY - 20}px`;
-                    tooltip.style.opacity = '1';
-
-                    const zoneInfo = ZONES[cell.zone];
-                    const bInfo = cell.building ? BUILDINGS.find(b => b.id === cell.building) : null;
-
-                    document.getElementById('tip-title').textContent = bInfo ? bInfo.name : `Zon: ${zoneInfo.name}`;
-                    document.getElementById('tip-desc').textContent = bInfo ? `Dibina atas Zon ${ZONES[bInfo.zone].name}` : zoneInfo.desc;
-                    return;
-                }
-            }
-
-            hoverTileMesh.visible = false;
-            document.getElementById('tooltip-3d').style.opacity = '0';
-        }
-
-        function onPointerDown(e) {
-            pointerDownPos = { x: e.clientX, y: e.clientY };
-
-            const onPointerUp = (upEvt) => {
-                window.removeEventListener('pointerup', onPointerUp);
-                const dist = Math.hypot(upEvt.clientX - pointerDownPos.x, upEvt.clientY - pointerDownPos.y);
-                if (dist < 6) {
-                    executeTapPlacement();
-                }
-            };
-            window.addEventListener('pointerup', onPointerUp);
-        }
-
-        function initDragAndDropSupport() {
-            const avatar = document.getElementById('drag-avatar');
-
-            window.addEventListener('pointermove', (e) => {
-                if (isDragging) {
-                    avatar.style.left = `${e.clientX}px`;
-                    avatar.style.top = `${e.clientY}px`;
-                }
-            });
-
-            window.addEventListener('pointerup', (e) => {
-                if (isDragging) {
-                    isDragging = false;
-                    avatar.style.display = 'none';
-
-                    const rect = renderer.domElement.getBoundingClientRect();
-                    if (
-                        e.clientX >= rect.left && e.clientX <= rect.right &&
-                        e.clientY >= rect.top && e.clientY <= rect.bottom
-                    ) {
-                        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-                        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-                        raycaster.setFromCamera(mouse, camera);
-                        const intersects = raycaster.intersectObjects(zonesGroup.children);
-
-                        if (intersects.length > 0) {
-                            const hitObj = intersects[0].object;
-                            const idx = hitObj.userData.gridIndex;
-                            if (idx !== undefined) {
-                                placeBuildingOnCell(gridData[idx], draggedBuildingId);
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function executeTapPlacement() {
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(zonesGroup.children);
-
-            if (intersects.length > 0) {
-                const hitObj = intersects[0].object;
-                const idx = hitObj.userData.gridIndex;
-                if (idx !== undefined) {
-                    placeBuildingOnCell(gridData[idx], selectedBuilding);
-                }
-            }
-        }
-
-        function placeBuildingOnCell(cell, buildingId) {
-            const bInfo = BUILDINGS.find(b => b.id === buildingId);
-
-            // COMPLIANCE RULE: Building must match tile zone
-            if (cell.zone !== bInfo.zone) {
-                AudioEngine.playError();
-                showStatus(`SALAH: ${bInfo.name} mesti diletakkan di Zon ${ZONES[bInfo.zone].name}!`);
-                spawnDustParticles(cell.x, 0.2, cell.z, 0xef4444);
-                return;
-            }
-
-            if (cell.buildingGroup) {
-                buildingsGroup.remove(cell.buildingGroup);
-            }
-
-            const buildingMeshGroup = createBuilding3DMesh(buildingId);
-            buildingMeshGroup.position.set(cell.x, 0, cell.z);
-            buildingMeshGroup.scale.set(0.01, 0.01, 0.01);
-            buildingsGroup.add(buildingMeshGroup);
-
-            cell.building = buildingId;
-            cell.buildingGroup = buildingMeshGroup;
-
-            animatedMeshes.push({ group: buildingMeshGroup, currentScale: 0.01, targetScale: 1.0 });
-
-            AudioEngine.playPop();
-            spawnDustParticles(cell.x, 0.2, cell.z, ZONES[cell.zone].hex);
-            showStatus(`Tepat! ${bInfo.name} diletakkan di Zon ${ZONES[cell.zone].name}.`);
-
-            updateAnalytics();
-        }
-
-        function spawnDustParticles(x, y, z, colorHex) {
-            for (let i = 0; i < 10; i++) {
-                const p = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.06, 0.06, 0.06),
-                    new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.9 })
-                );
-                p.position.set(x + (Math.random() - 0.5) * 0.4, y, z + (Math.random() - 0.5) * 0.4);
-                p.userData = {
-                    vx: (Math.random() - 0.5) * 0.035,
-                    vy: Math.random() * 0.045 + 0.02,
-                    vz: (Math.random() - 0.5) * 0.035,
-                    life: 1.0
-                };
-                particlesGroup.add(p);
-            }
-        }
-
-        /* ANALYTICS & WIN ENGINE */
-        function updateAnalytics() {
-            const filledCells = gridData.filter(c => c.building !== null).length;
-            const totalCells = 36;
-
-            document.getElementById('stat-progress').textContent = `${filledCells} / ${totalCells}`;
-            document.getElementById('stat-compliance').textContent = `100%`;
-
-            if (filledCells === totalCells) {
-                stopTimer();
-                AudioEngine.playVictory();
-                confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
-
-                const rankText = saveLeaderboardEntry(currentPlayerName, currentMapName, elapsedMs);
-
-                document.getElementById('victory-player-name').textContent = currentPlayerName;
-                document.getElementById('m-stat-map').textContent = currentMapName;
-                document.getElementById('m-stat-time').textContent = formatTimeMs(elapsedMs);
-                document.getElementById('m-stat-rank').textContent = rankText;
-                document.getElementById('modal-victory').classList.remove('hidden');
-            }
-        }
-
-        /* TIMER ENGINE WITH MILLISECONDS */
-        function startTimer() {
-            stopTimer();
-            startTime = Date.now();
-            elapsedMs = 0;
-            isTimerRunning = true;
-            
-            timerInterval = setInterval(() => {
-                if (isTimerRunning) {
-                    elapsedMs = Date.now() - startTime;
-                    document.getElementById('stat-timer').textContent = formatTimeMs(elapsedMs);
-                }
-            }, 50);
-        }
-
-        function stopTimer() {
-            isTimerRunning = false;
-            if (timerInterval) clearInterval(timerInterval);
-        }
-
-        function formatTimeMs(ms) {
-            const totalSecs = Math.floor(ms / 1000);
-            const m = Math.floor(totalSecs / 60).toString().padStart(2, '0');
-            const s = (totalSecs % 60).toString().padStart(2, '0');
-            const tenths = Math.floor((ms % 1000) / 100);
-            return `${m}:${s}.${tenths}`;
-        }
-
-        /* ANIMATION RENDER LOOP */
-        let sunAngle = 0;
-        let isSunMoving = false;
-
-        function toggleSunAnimation() {
-            isSunMoving = !isSunMoving;
-            showStatus(isSunMoving ? "Pencahayaan Dinamik Diaktifkan" : "Pencahayaan Statik");
-        }
-
-        function animateLoop() {
-            requestAnimationFrame(animateLoop);
-            controls.update();
-
-            if (isSunMoving) {
-                sunAngle += 0.005;
-                sunLight.position.x = Math.cos(sunAngle) * 15;
-                sunLight.position.z = Math.sin(sunAngle) * 15;
-            }
-
-            for (let i = animatedMeshes.length - 1; i >= 0; i--) {
-                const item = animatedMeshes[i];
-                item.currentScale += (item.targetScale - item.currentScale) * 0.25;
-                item.group.scale.set(item.currentScale, item.currentScale, item.currentScale);
-
-                if (Math.abs(item.targetScale - item.currentScale) < 0.01) {
-                    item.group.scale.set(1, 1, 1);
-                    animatedMeshes.splice(i, 1);
-                }
-            }
-
-            particlesGroup.children.forEach((p) => {
-                p.position.x += p.userData.vx;
-                p.position.y += p.userData.vy;
-                p.position.z += p.userData.vz;
-                p.userData.life -= 0.04;
-                p.material.opacity = p.userData.life;
-
-                if (p.userData.life <= 0) {
-                    particlesGroup.remove(p);
-                }
-            });
-
-            renderer.render(scene, camera);
-        }
-
-        /* REGISTRATION & TURN PASSING ENGINE */
-        function confirmRegistrationAndStart() {
-            const nameInput = document.getElementById('reg-player-name');
-            const mapSelect = document.getElementById('reg-map-preset');
-
-            const valName = nameInput.value.trim();
-            currentPlayerName = valName ? valName : "Pemain " + Math.floor(Math.random() * 899 + 100);
-            currentMapKey = mapSelect.value;
-
-            document.getElementById('hud-player-name').textContent = currentPlayerName;
-            document.getElementById('modal-player-registration').classList.add('hidden');
-
-            loadMapGrid(currentMapKey);
-            startTimer();
-            AudioEngine.playPop();
-        }
-
-        function startNextPlayerTurn() {
-            stopTimer();
-            closeVictoryModal();
-            closeLeaderboardModal();
-            document.getElementById('reg-player-name').value = '';
-            document.getElementById('modal-player-registration').classList.remove('hidden');
-        }
-
-        function resetCurrentBoard() {
-            loadMapGrid(currentMapKey);
-            startTimer();
-        }
-
-        function resetCameraView() {
-            camera.position.set(8.5, 11, 12);
-            controls.target.set(0, 0, 0);
-            controls.update();
-        }
-
-        function toggleGridLines() {
-            zonesGroup.children.forEach(m => {
-                if (m.material) m.material.wireframe = !m.material.wireframe;
-            });
-        }
-
-        function closeVictoryModal() {
-            document.getElementById('modal-victory').classList.add('hidden');
-        }
-
-        function showStatus(text) {
-            document.getElementById('status-text').textContent = text;
-        }
-
-        function renderBuildingCards() {
-            const container = document.getElementById('building-cards-container');
-            container.innerHTML = '';
-
-            BUILDINGS.forEach(b => {
-                const card = document.createElement('div');
-                card.className = `building-card glass-btn flex-shrink-0 p-2 rounded-xl text-xs font-bold flex items-center gap-2 ${selectedBuilding === b.id ? 'ring-2 ring-amber-400 bg-slate-800' : ''}`;
-                
-                card.onclick = () => {
-                    selectedBuilding = b.id;
-                    renderBuildingCards();
-                    AudioEngine.playPop();
-                };
-
-                card.onpointerdown = (e) => {
-                    isDragging = true;
-                    draggedBuildingId = b.id;
-                    selectedBuilding = b.id;
-                    renderBuildingCards();
-
-                    const avatar = document.getElementById('drag-avatar');
-                    document.getElementById('drag-avatar-icon').className = `fa-solid ${b.icon}`;
-                    document.getElementById('drag-avatar-text').textContent = b.name;
-                    avatar.style.left = `${e.clientX}px`;
-                    avatar.style.top = `${e.clientY}px`;
-                    avatar.style.display = 'flex';
-                };
-
-                card.innerHTML = `
-                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs shadow-md" style="background-color: ${b.color}">
-                        <i class="fa-solid ${b.icon}"></i>
-                    </div>
-                    <div class="text-left">
-                        <div class="text-xs text-slate-100 leading-tight">${b.name}</div>
-                        <div class="text-[9px] text-slate-400 font-normal">Zon ${ZONES[b.zone].name}</div>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function onWindowResize() {
-            const container = document.getElementById('canvas-container');
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        }
-
-        window.addEventListener('load', () => {
-            renderBuildingCards();
-            init3DScene();
-            animateLoop();
-            initDragAndDropSupport();
-        });
-    </script>
-</body>
-</html>
+            renderer.domElement.addEventListener('pointermove', onPointerMove
