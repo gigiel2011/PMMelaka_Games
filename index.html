@@ -363,4 +363,456 @@
 
         const ZONES = {
             res: { id: 'res', name: 'Perumahan', hex: 0xf59e0b, desc: 'Zon Perumahan Mapan & Banglo' },
-            com: { id: 'com', name: 'Komersial', hex: 0x3b82f6
+            com: { id: 'com', name: 'Komersial', hex: 0x3b82f6, desc: 'Zon Menara Komersial & Perniagaan' },
+            ind: { id: 'ind', name: 'Industri', hex: 0xa855f7, desc: 'Zon Industri & Pembuatan Heavy' },
+            agr: { id: 'agr', name: 'Pertanian', hex: 0x84cc16, desc: 'Zon Rumah Hijau & Pertanian Moden' },
+            prk: { id: 'prk', name: 'Taman Awam', hex: 0x10b981, desc: 'Zon Rekreasi Awam & Landskap Green' }
+        };
+
+        const BUILDINGS = [
+            { id: 'b_res_house', name: 'Kawasan Perumahan', zone: 'res', icon: 'fa-house-chimney-window', color: '#f59e0b' },
+            { id: 'b_com_shop', name: 'Menara Komersial', zone: 'com', icon: 'fa-building', color: '#3b82f6' },
+            { id: 'b_ind_factory', name: 'Kompleks Industri', zone: 'ind', icon: 'fa-industry', color: '#a855f7' },
+            { id: 'b_agr_farm', name: 'Rumah Hijau & Ladang', zone: 'agr', icon: 'fa-wheat-awn', color: '#84cc16' },
+            { id: 'b_prk_tree', name: 'Taman Awam & Kolam', zone: 'prk', icon: 'fa-tree', color: '#10b981' }
+        ];
+
+        const PRESET_MAPS = {
+            desa: {
+                name: 'Bandar Desa',
+                layout: [
+                    ['res', 'res', 'com', 'com', 'prk', 'prk'],
+                    ['res', 'res', 'com', 'prk', 'prk', 'prk'],
+                    ['prk', 'res', 'com', 'prk', 'agr', 'agr'],
+                    ['prk', 'res', 'ind', 'ind', 'agr', 'agr'],
+                    ['prk', 'com', 'ind', 'ind', 'agr', 'agr'],
+                    ['prk', 'com', 'ind', 'ind', 'prk', 'prk']
+                ]
+            },
+            pusat: {
+                name: 'Metropol',
+                layout: [
+                    ['res', 'res', 'res', 'com', 'com', 'com'],
+                    ['res', 'res', 'res', 'com', 'com', 'com'],
+                    ['prk', 'prk', 'res', 'com', 'com', 'com'],
+                    ['prk', 'prk', 'res', 'com', 'com', 'ind'],
+                    ['agr', 'agr', 'prk', 'ind', 'ind', 'ind'],
+                    ['agr', 'agr', 'prk', 'ind', 'ind', 'ind']
+                ]
+            },
+            industri: {
+                name: 'Zon Industri & Pertanian',
+                layout: [
+                    ['prk', 'prk', 'res', 'res', 'com', 'com'],
+                    ['prk', 'prk', 'res', 'res', 'com', 'com'],
+                    ['agr', 'agr', 'prk', 'prk', 'ind', 'ind'],
+                    ['agr', 'agr', 'agr', 'ind', 'ind', 'ind'],
+                    ['agr', 'agr', 'agr', 'ind', 'ind', 'ind'],
+                    ['agr', 'agr', 'agr', 'ind', 'ind', 'ind']
+                ]
+            }
+        };
+
+        function generateRandomMapLayout() {
+            const keys = ['res', 'com', 'ind', 'agr', 'prk'];
+            const arr = [];
+            for (let r = 0; r < 6; r++) {
+                const row = [];
+                for (let c = 0; c < 6; c++) {
+                    row.push(keys[Math.floor(Math.random() * keys.length)]);
+                }
+                arr.push(row);
+            }
+            return arr;
+        }
+
+        const gridSize = 6;
+        let selectedBuilding = 'b_res_house';
+        let gridData = [];
+        let animatedMeshes = [];
+        let currentPlayerName = "Pemain";
+        let currentMapKey = "desa";
+        let currentMapName = "Bandar Desa";
+
+        let startTime = 0;
+        let elapsedMs = 0;
+        let timerInterval = null;
+        let isTimerRunning = false;
+
+        let scene, camera, renderer, controls;
+        let raycaster, mouse;
+        let gridGroup, buildingsGroup;
+        let sunLight;
+        let isSunOrbiting = true;
+        let isWireframe = false;
+
+        const LB_KEY = 'simcity_3d_leaderboard_v2';
+
+        function getLeaderboard() {
+            try {
+                const raw = localStorage.getItem(LB_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch(e) { return []; }
+        }
+
+        function saveLeaderboardEntry(name, mapName, timeMs) {
+            const list = getLeaderboard();
+            const entry = {
+                id: Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+                name: name,
+                map: mapName,
+                timeMs: timeMs,
+                date: new Date().toLocaleDateString('ms-MY')
+            };
+            list.push(entry);
+            list.sort((a, b) => a.timeMs - b.timeMs);
+            localStorage.setItem(LB_KEY, JSON.stringify(list));
+            const rankIndex = list.findIndex(item => item.id === entry.id);
+            return rankIndex !== -1 ? `#${rankIndex + 1}` : "Top";
+        }
+
+        function clearLeaderboardPermanent() {
+            if (confirm("Padam SEMUA rekod leaderboard secara kekal?")) {
+                localStorage.removeItem(LB_KEY);
+                renderLeaderboardList();
+                showStatus("Leaderboard dipadamkan.");
+            }
+        }
+
+        function renderLeaderboardList() {
+            const list = getLeaderboard();
+            const filterMap = document.getElementById('lb-filter-preset').value;
+            const container = document.getElementById('leaderboard-list');
+            container.innerHTML = '';
+            const filtered = filterMap === 'all' ? list : list.filter(item => item.map === filterMap);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-xs text-slate-500 py-6">Tiada rekod mendaftar.</div>`;
+                return;
+            }
+            filtered.forEach((item, idx) => {
+                const row = document.createElement('div');
+                row.className = `flex justify-between items-center p-2 rounded-xl text-xs ${idx === 0 ? 'bg-amber-500/20 border border-amber-400/40 text-amber-300' : 'bg-slate-900/60 text-slate-300'}`;
+                row.innerHTML = `
+                    <div class="flex items-center gap-2 truncate">
+                        <span class="w-5 font-black text-center ${idx === 0 ? 'text-amber-400' : 'text-slate-500'}">#${idx + 1}</span>
+                        <div class="truncate">
+                            <div class="font-bold truncate">${item.name}</div>
+                            <div class="text-[9px] text-slate-400">${item.map} • ${item.date}</div>
+                        </div>
+                    </div>
+                    <span class="font-mono font-bold text-cyan-400 ml-2">${formatTimeMs(item.timeMs)}</span>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function openLeaderboardModal() {
+            renderLeaderboardList();
+            document.getElementById('modal-leaderboard').classList.remove('hidden');
+        }
+
+        function closeLeaderboardModal() {
+            document.getElementById('modal-leaderboard').classList.add('hidden');
+        }
+
+        function createBuilding3DMesh(buildingId) {
+            const group = new THREE.Group();
+            if (buildingId === 'b_res_house') {
+                const base = new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.04, 0.86), new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 }));
+                base.position.y = 0.02; group.add(base);
+                const wall1 = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.38, 0.42), new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.4 }));
+                wall1.position.set(-0.16, 0.23, -0.16); group.add(wall1);
+                const roof1 = new THREE.Mesh(new THREE.ConeGeometry(0.36, 0.28, 4), new THREE.MeshStandardMaterial({ color: 0xb91c1c, roughness: 0.3 }));
+                roof1.position.set(-0.16, 0.56, -0.16); roof1.rotation.y = Math.PI / 4; group.add(roof1);
+            } else if (buildingId === 'b_com_shop') {
+                const tower = new THREE.Mesh(new THREE.BoxGeometry(0.65, 1.1, 0.65), new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.2 }));
+                tower.position.y = 0.55; group.add(tower);
+            } else if (buildingId === 'b_ind_factory') {
+                const warehouse = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.5, 0.62), new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.6 }));
+                warehouse.position.y = 0.25; group.add(warehouse);
+            } else if (buildingId === 'b_agr_farm') {
+                const soil = new THREE.Mesh(new THREE.BoxGeometry(0.84, 0.08, 0.84), new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 }));
+                soil.position.y = 0.04; group.add(soil);
+            } else if (buildingId === 'b_prk_tree') {
+                const grass = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.06, 0.88), new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.8 }));
+                grass.position.y = 0.03; group.add(grass);
+            }
+            return group;
+        }
+
+        function initThreeScene() {
+            const container = document.getElementById('canvas-container');
+            container.innerHTML = '';
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x080d1a);
+            scene.fog = new THREE.FogExp2(0x080d1a, 0.035);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 10.5, 9.5);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.maxPolarAngle = Math.PI / 2.2;
+            controls.minDistance = 5;
+            controls.maxDistance = 22;
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+            scene.add(ambientLight);
+
+            sunLight = new THREE.DirectionalLight(0xfffbeb, 1.4);
+            sunLight.position.set(8, 14, 6);
+            scene.add(sunLight);
+
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            gridGroup = new THREE.Group();
+            buildingsGroup = new THREE.Group();
+            scene.add(gridGroup);
+            scene.add(buildingsGroup);
+
+            buildGridBoard();
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+            renderer.domElement.addEventListener('pointerdown', onPointerDown);
+            animateScene();
+        }
+
+        function buildGridBoard() {
+            gridGroup.clear();
+            buildingsGroup.clear();
+            animatedMeshes = [];
+            const spacing = 0.96;
+            const offset = (gridSize * spacing) / 2 - spacing / 2;
+
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    const zoneType = gridData[r][c];
+                    const zoneMeta = ZONES[zoneType];
+                    const tileGeo = new THREE.BoxGeometry(0.92, 0.08, 0.92);
+                    const tileMat = new THREE.MeshStandardMaterial({ color: zoneMeta.hex, wireframe: isWireframe });
+                    const tileMesh = new THREE.Mesh(tileGeo, tileMat);
+                    tileMesh.position.set(c * spacing - offset, -0.04, r * spacing - offset);
+                    tileMesh.userData = { row: r, col: c, type: 'tile', zone: zoneType };
+                    gridGroup.add(tileMesh);
+                }
+            }
+        }
+
+        function onPointerDown(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(gridGroup.children, false);
+            if (intersects.length > 0) {
+                const hit = intersects[0].object;
+                if (hit && hit.userData && hit.userData.type === 'tile') {
+                    placeBuildingOnTile(hit.userData.row, hit.userData.col);
+                }
+            }
+        }
+
+        function placeBuildingOnTile(r, c) {
+            if (!isTimerRunning) startTimer();
+            const targetZone = gridData[r][c];
+            const buildingMeta = BUILDINGS.find(b => b.id === selectedBuilding);
+
+            if (targetZone === buildingMeta.zone) {
+                AudioEngine.playPop();
+                showStatus(`Berjaya membina ${buildingMeta.name}!`);
+                const spacing = 0.96;
+                const offset = (gridSize * spacing) / 2 - spacing / 2;
+
+                const existing = buildingsGroup.children.find(m => m.userData.row === r && m.userData.col === c);
+                if (existing) buildingsGroup.remove(existing);
+
+                const bMesh = createBuilding3DMesh(selectedBuilding);
+                bMesh.position.set(c * spacing - offset, 0, r * spacing - offset);
+                bMesh.userData = { row: r, col: c, buildingId: selectedBuilding };
+                bMesh.scale.set(0.1, 0.1, 0.1);
+                buildingsGroup.add(bMesh);
+                animatedMeshes.push({ mesh: bMesh, targetScale: 1, speed: 0.15 });
+                checkGameVictoryCondition();
+            } else {
+                AudioEngine.playError();
+                showStatus(`Ralat! Tidak sepadan dengan zon.`);
+            }
+        }
+
+        function checkGameVictoryCondition() {
+            const placedMap = {};
+            buildingsGroup.children.forEach(m => {
+                placedMap[`${m.userData.row},${m.userData.col}`] = m.userData.buildingId;
+            });
+            const zoneMap = { 'b_res_house': 'res', 'b_com_shop': 'com', 'b_ind_factory': 'ind', 'b_agr_farm': 'agr', 'b_prk_tree': 'prk' };
+
+            let correctTotal = 0;
+            const totalTiles = gridSize * gridSize;
+            for(let r=0; r<gridSize; r++) {
+                for(let c=0; c<gridSize; c++) {
+                    const key = `${r},${c}`;
+                    if(placedMap[key] && zoneMap[placedMap[key]] === gridData[r][c]) {
+                        correctTotal++;
+                    }
+                }
+            }
+
+            document.getElementById('stat-progress').innerText = `${correctTotal} / ${totalTiles}`;
+            if (correctTotal === totalTiles) {
+                stopTimer();
+                AudioEngine.playVictory();
+                const rankStr = saveLeaderboardEntry(currentPlayerName, currentMapName, elapsedMs);
+                document.getElementById('victory-player-name').innerText = currentPlayerName;
+                document.getElementById('m-stat-map').innerText = currentMapName;
+                document.getElementById('m-stat-time').innerText = formatTimeMs(elapsedMs);
+                document.getElementById('m-stat-rank').innerText = rankStr;
+                document.getElementById('modal-victory').classList.remove('hidden');
+            }
+        }
+
+        function startTimer() {
+            if (isTimerRunning) return;
+            isTimerRunning = true;
+            startTime = Date.now() - elapsedMs;
+            timerInterval = setInterval(() => {
+                elapsedMs = Date.now() - startTime;
+                document.getElementById('stat-timer').innerText = formatTimeMs(elapsedMs);
+            }, 100);
+        }
+
+        function stopTimer() {
+            isTimerRunning = false;
+            clearInterval(timerInterval);
+        }
+
+        function formatTimeMs(ms) {
+            const totalSec = ms / 1000;
+            const mins = Math.floor(totalSec / 60);
+            const secs = Math.floor(totalSec % 60);
+            const tenths = Math.floor((totalSec % 1) * 10);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${tenths}`;
+        }
+
+        function resetCurrentBoard() {
+            stopTimer();
+            elapsedMs = 0;
+            document.getElementById('stat-timer').innerText = "00:00.0";
+            document.getElementById('stat-progress').innerText = `0 / ${gridSize * gridSize}`;
+            buildGridBoard();
+            showStatus("Papan diset semula.");
+        }
+
+        function showStatus(msg) {
+            document.getElementById('status-text').innerText = msg;
+        }
+
+        function renderBuildingCards() {
+            const container = document.getElementById('building-cards-container');
+            container.innerHTML = '';
+            BUILDINGS.forEach(b => {
+                const card = document.createElement('div');
+                card.className = `building-card flex-shrink-0 w-28 p-2 rounded-xl flex flex-col items-center justify-center text-center glass-btn ${selectedBuilding === b.id ? 'border-amber-400 bg-amber-500/20' : 'border-slate-700'}`;
+                card.innerHTML = `
+                    <div class="w-9 h-9 rounded-lg flex items-center justify-center mb-1 text-white shadow" style="background: ${b.color};">
+                        <i class="fa-solid ${b.icon} text-sm"></i>
+                    </div>
+                    <div class="text-[10px] font-extrabold text-slate-200 truncate w-full">${b.name}</div>
+                `;
+                card.addEventListener('click', () => {
+                    selectedBuilding = b.id;
+                    AudioEngine.playPop();
+                    renderBuildingCards();
+                    document.getElementById('selected-building-badge').innerText = b.name;
+                    showStatus(`Dipilih: ${b.name}`);
+                });
+                container.appendChild(card);
+            });
+        }
+
+        function confirmRegistrationAndStart() {
+            const nameInput = document.getElementById('reg-player-name').value.trim();
+            currentPlayerName = nameInput ? nameInput : "Pemain";
+            const presetKey = document.getElementById('reg-map-preset').value;
+            currentMapKey = presetKey;
+            
+            if (presetKey === 'desa') {
+                currentMapName = PRESET_MAPS.desa.name;
+                gridData = JSON.parse(JSON.stringify(PRESET_MAPS.desa.layout));
+            } else if (presetKey === 'pusat') {
+                currentMapName = PRESET_MAPS.pusat.name;
+                gridData = JSON.parse(JSON.stringify(PRESET_MAPS.pusat.layout));
+            } else if (presetKey === 'industri') {
+                currentMapName = PRESET_MAPS.industri.name;
+                gridData = JSON.parse(JSON.stringify(PRESET_MAPS.industri.layout));
+            } else {
+                currentMapName = "Pelan Rawak";
+                gridData = generateRandomMapLayout();
+            }
+
+            document.getElementById('hud-player-name').innerText = currentPlayerName;
+            document.getElementById('hud-map-name').innerText = currentMapName;
+            document.getElementById('modal-player-registration').classList.add('hidden');
+            document.getElementById('modal-victory').classList.add('hidden');
+            resetCurrentBoard();
+            AudioEngine.playPop();
+        }
+
+        function startNextPlayerTurn() {
+            stopTimer();
+            elapsedMs = 0;
+            document.getElementById('stat-timer').innerText = "00:00.0";
+            document.getElementById('modal-player-registration').classList.remove('hidden');
+            document.getElementById('modal-victory').classList.add('hidden');
+            AudioEngine.playPop();
+        }
+
+        function resetCameraView() {
+            camera.position.set(0, 10.5, 9.5);
+            controls.target.set(0, 0, 0);
+            controls.update();
+        }
+
+        function toggleGridLines() {
+            isWireframe = !isWireframe;
+            gridGroup.children.forEach(mesh => { if(mesh.material) mesh.material.wireframe = isWireframe; });
+        }
+
+        function toggleSunAnimation() { isSunOrbiting = !isSunOrbiting; }
+
+        let clock = new THREE.Clock();
+        function animateScene() {
+            requestAnimationFrame(animateScene);
+            if (isSunOrbiting && sunLight) {
+                const angle = clock.getElapsedTime() * 0.15;
+                sunLight.position.x = Math.cos(angle) * 10;
+                sunLight.position.z = Math.sin(angle) * 10;
+            }
+            animatedMeshes.forEach(item => {
+                const currentScale = item.mesh.scale.x;
+                if (currentScale < item.targetScale) {
+                    const next = THREE.MathUtils.lerp(currentScale, item.targetScale, item.speed);
+                    item.mesh.scale.set(next, next, next);
+                }
+            });
+            if (controls) controls.update();
+            if (renderer && scene && camera) renderer.render(scene, camera);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initThreeScene();
+            renderBuildingCards();
+        });
+    </script>
+</body>
+</html>
